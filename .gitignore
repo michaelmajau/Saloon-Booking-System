@@ -22,3 +22,14 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+
+# Backend and frontend build files
+**/node_modules/
+**/dist/
+
+# TypeScript build information
+*.tsbuildinfo
