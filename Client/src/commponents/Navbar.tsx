@@ -7,19 +7,19 @@ const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
-    <nav className="w-full bg-[#F7F5F1] border-b border-[#DDD5CC]">
-      <div className="flex items-center justify-between px-6 md:px-12 lg:px-20 h-[100px]">
+   <nav className="sticky top-0 z-50 w-full bg-[#F7F5F1] border-b border-[#DDD5CC]">
+      <div className="flex items-center justify-between px-6 md:px-12 lg:px-20 h-[50px]">
 
         {/* Logo */}
         <Link
           to="/"
-          className="font-serif text-[30px] text-[#70263E] whitespace-nowrap"
+          className="font-serif text-[20px] text-[#70263E] whitespace-nowrap"
         >
-          The Chair &amp; Co.
+          Bookify Co.
         </Link>
 
         {/* Desktop Navigation */}
-        <div className="hidden lg:flex items-center gap-10 text-[#82766E] text-[18px]">
+        <div className="hidden lg:flex items-center gap-10 text-[#82766E] text-[14px]">
 
           <Link to="/" className="hover:text-[#70263E] transition-colors">
             Home
@@ -43,7 +43,7 @@ const Navbar = () => {
         {/* Desktop Button */}
         <Link
           to="/sign-up"
-          className="hidden lg:inline-flex items-center justify-center bg-[#70263E] text-white font-semibold px-6 py-4 rounded-[4px] border-2 border-[#29221F] hover:bg-[#592033] transition-colors"
+          className="hidden lg:inline-flex items-center justify-center  text-[15px] bg-[#70263E] text-white font-semibold px-4 py-1 rounded-[3px] border-2 border-[#29221F] hover:bg-[#592033] transition-colors"
         >
           Book an appointment
         </Link>
