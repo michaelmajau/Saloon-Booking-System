@@ -358,7 +358,7 @@ function Signup() {
             <p className="mt-6 text-center text-sm text-[#82766E]">
               Already have an account?{" "}
               <Link
-                to="/signin"
+                to="/sign-in"
                 className="font-semibold text-[#70263E] hover:underline"
               >
                 Sign In

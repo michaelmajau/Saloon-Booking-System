@@ -4,9 +4,10 @@ import { createBrowserRouter } from "react-router-dom";
 import MainLayout from "./layouts/MainLayout";
 import Hero from "./pages/Hero";
 import Signup from "./pages/Signup";
+import Signin from "./pages/Signin";
 import AuthCallback from "./pages/AuthCallback";
 import Dashboard from "./pages/Dashboard";
-import Signin from "./pages/Signin";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 const router = createBrowserRouter([
   {
@@ -34,17 +35,22 @@ const router = createBrowserRouter([
         element: <Signup />,
       },
       {
+        path: "sign-in",
+        element: <Signin />,
+      },
+      {
         path: "auth/callback",
         element: <AuthCallback />,
       },
       {
-        path: "dashboard",
-        element: <Dashboard />,
+        element: <ProtectedRoute />,
+        children: [
+          {
+            path: "dashboard",
+            element: <Dashboard />,
+          },
+        ],
       },
-            {
-        path: "signin",
-        element: <Signin/>,
-      }
     ],
   },
 ]);
