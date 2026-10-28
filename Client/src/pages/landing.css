@@ -1,0 +1,362 @@
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Playfair+Display:wght@400;500&display=swap");
+
+.landing {
+  --burgundy: #722540;
+  --cream: #f6f4ef;
+  --nav-bg: #f0ebe6;
+  --ink: #231c1a;
+  --muted: #766d68;
+  --line: #e3ded6;
+  --serif: "Playfair Display", Georgia, serif;
+  --sans: "DM Sans", system-ui, sans-serif;
+
+  background: var(--cream);
+  color: var(--ink);
+  font-family: var(--sans);
+  line-height: 1.6;
+}
+
+.landing h1,
+.landing h2,
+.landing h3 {
+  font-family: var(--serif);
+  font-weight: 400;
+  margin: 0;
+}
+
+.landing a:focus-visible {
+  outline: 2px solid var(--burgundy);
+  outline-offset: 3px;
+}
+
+/* ---------- Nav ---------- */
+.nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 16px clamp(20px, 5vw, 64px);
+  background: var(--nav-bg);
+}
+.nav__logo {
+  font-family: var(--serif);
+  font-size: 1.4rem;
+  color: var(--burgundy);
+  text-decoration: none;
+}
+.nav__links {
+  display: flex;
+  gap: 32px;
+}
+.nav__links a {
+  color: var(--ink);
+  text-decoration: none;
+  font-size: 0.95rem;
+}
+
+/* ---------- Buttons & links ---------- */
+.btn {
+  display: inline-block;
+  padding: 16px 32px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  text-decoration: none;
+  transition: background 0.2s;
+}
+.btn--primary {
+  background: var(--burgundy);
+  color: #fff;
+}
+.btn--primary:hover {
+  background: #5a1c32;
+}
+.btn--light {
+  background: #fff;
+  color: var(--burgundy);
+}
+.btn--light:hover {
+  background: var(--cream);
+}
+.link-underline {
+  color: var(--ink);
+  text-decoration: none;
+  border-bottom: 1px solid var(--ink);
+  padding-bottom: 2px;
+  font-size: 0.95rem;
+}
+
+.eyebrow {
+  margin: 0 0 24px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--burgundy);
+}
+.eyebrow--light {
+  color: #e8c9d4;
+}
+
+/* ---------- Hero ---------- */
+.hero {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  min-height: 640px;
+}
+.hero__image {
+  /* Photo lives at public/assets/salon-interior.jpg */
+  background: #c9c4bb url("/assets/salon-interior.jpg") center / cover no-repeat;
+}
+.hero__text {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 64px clamp(24px, 6vw, 96px);
+}
+.hero__text h1 {
+  font-size: clamp(2.6rem, 5.2vw, 4.5rem);
+  line-height: 1.08;
+  max-width: 11em;
+}
+.hero__lead {
+  margin: 32px 0 40px;
+  max-width: 30em;
+  font-size: 1.2rem;
+  line-height: 1.9;
+  color: var(--muted);
+}
+.hero__actions {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  flex-wrap: wrap;
+}
+
+/* ---------- Services ---------- */
+.services {
+  padding: 96px clamp(20px, 5vw, 96px);
+}
+.services .eyebrow {
+  margin-bottom: 16px;
+}
+.services__head {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 48px;
+  align-items: end;
+  margin-bottom: 64px;
+}
+.services__head h2 {
+  font-size: clamp(2.2rem, 4.2vw, 3.6rem);
+  line-height: 1.1;
+  max-width: 8em;
+}
+.services__head p {
+  margin: 0;
+  max-width: 34em;
+  font-size: 1.15rem;
+  line-height: 1.9;
+  color: var(--muted);
+}
+.services__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  border: 1px solid var(--line);
+  background: #fff;
+}
+.service {
+  display: flex;
+  flex-direction: column;
+  padding: 40px 44px;
+  min-height: 390px;
+  border-right: 1px solid var(--line);
+}
+.service:last-child {
+  border-right: 0;
+}
+.service__num {
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin-bottom: 48px;
+}
+.service h3 {
+  font-size: 1.9rem;
+  margin-bottom: 16px;
+}
+.service p {
+  margin: 0;
+  color: var(--muted);
+}
+.service__foot {
+  margin-top: auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+.service__foot a {
+  color: var(--burgundy);
+  font-weight: 500;
+  text-decoration: none;
+}
+
+/* ---------- Studio band ---------- */
+.studio {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  background: var(--burgundy);
+  color: #fff;
+  padding: 96px clamp(20px, 5vw, 96px);
+}
+.studio__copy {
+  padding-right: 64px;
+  border-right: 1px solid rgba(255, 255, 255, 0.25);
+}
+.studio h2 {
+  font-size: clamp(2.4rem, 4.4vw, 3.8rem);
+  line-height: 1.1;
+  margin-bottom: 16px;
+}
+.studio__copy p:not(.eyebrow) {
+  margin: 0 0 32px;
+  max-width: 32em;
+  font-size: 1.15rem;
+  line-height: 1.8;
+  color: #f0dbe3;
+}
+.studio__quote {
+  margin: 0;
+  padding-left: 64px;
+  align-self: center;
+}
+.studio blockquote {
+  margin: 0 0 16px;
+  font-family: var(--serif);
+  font-size: clamp(1.6rem, 2.6vw, 2.2rem);
+  line-height: 1.5;
+}
+.studio figcaption {
+  font-size: 0.9rem;
+  color: #e8c9d4;
+}
+
+/* ---------- Team CTA ---------- */
+.team-cta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 80px clamp(20px, 5vw, 96px) 120px;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+.team-cta .eyebrow--muted {
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+.team-cta h2 {
+  font-size: clamp(2.4rem, 5vw, 4.4rem);
+  line-height: 1.1;
+}
+.team-cta p:not(.eyebrow) {
+  margin: 8px 0 24px;
+  font-size: 1.3rem;
+  color: var(--muted);
+}
+.btn--outline {
+  background: #fff;
+  color: var(--ink);
+  border: 1px solid #cfc9c0;
+}
+.btn--outline:hover {
+  background: var(--cream);
+}
+
+/* ---------- Footer ---------- */
+.footer {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap: 32px;
+  padding: 64px clamp(20px, 5vw, 64px) 72px;
+}
+.footer__logo {
+  font-family: var(--serif);
+  font-size: 1.9rem;
+  color: var(--burgundy);
+}
+.footer p {
+  margin: 0 0 8px;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+.footer__brand p {
+  margin-top: 16px;
+}
+.footer h4 {
+  margin: 0 0 16px;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+.footer__signin {
+  align-self: start;
+  justify-self: end;
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 0.95rem;
+}
+.footer__signin:hover {
+  color: var(--burgundy);
+}
+
+/* ---------- Last page fonts ----------
+   Only the team section and footer use these. Change the names here
+   (and add the font to the @import on line 1) to restyle just this part. */
+.team-cta,
+.footer {
+  --serif: "Playfair Display", Georgia, serif;
+  --sans: "DM Sans", system-ui, sans-serif;
+  font-family: var(--sans);
+}
+
+/* ---------- Mobile ---------- */
+@media (max-width: 860px) {
+  .nav__links {
+    display: none;
+  }
+  .hero,
+  .services__head,
+  .studio {
+    grid-template-columns: 1fr;
+  }
+  .hero__image {
+    min-height: 320px;
+  }
+  .services__grid {
+    grid-template-columns: 1fr;
+  }
+  .service {
+    min-height: 0;
+    gap: 8px;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .service:last-child {
+    border-bottom: 0;
+  }
+  .service__foot {
+    margin-top: 32px;
+  }
+  .studio__copy {
+    padding: 0 0 48px;
+    border-right: 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.25);
+  }
+  .studio__quote {
+    padding: 48px 0 0;
+  }
+  .footer {
+    grid-template-columns: 1fr 1fr;
+  }
+  .footer__signin {
+    justify-self: start;
+  }
+}
