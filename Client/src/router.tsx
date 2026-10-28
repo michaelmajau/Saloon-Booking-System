@@ -1,8 +1,7 @@
-
 import { createBrowserRouter } from "react-router-dom";
 
 import MainLayout from "./layouts/MainLayout";
-import Hero from "./pages/Hero";
+import LandingPage from "./pages/LandingPage";
 import Signup from "./pages/Signup";
 import Signin from "./pages/Signin";
 import AuthCallback from "./pages/AuthCallback";
@@ -16,7 +15,7 @@ const router = createBrowserRouter([
     children: [
       {
         index: true,
-        element: <Hero />,
+        element: <LandingPage />,
       },
       {
         path: "signup",
@@ -51,7 +50,7 @@ const router = createBrowserRouter([
           },
         ],
       },
-    ],
+     ],
   },
 ]);
 
