@@ -2,11 +2,26 @@
 import { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { supabase } from "../lib/supabase";
+import { useNavigate } from "react-router-dom";
 
 function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [authenticated, setAuthenticated] = useState(false);
   const [fullName, setFullName] = useState("");
+
+
+const navigate = useNavigate();
+
+const handleSignout = async () => {
+  const { error } = await supabase.auth.signOut();
+
+  if (error) {
+    console.error("Sign out failed:", error.message);
+    return;
+  }
+
+  navigate("/sign-in", { replace: true });
+};
 
   useEffect(() => {
     let active = true;
@@ -50,6 +65,13 @@ function Dashboard() {
       <p className="mt-4 text-[#82766E]">
         Welcome to your The Chair & Co. dashboard.
       </p>
+      <button
+        type="button"
+        onClick={handleSignout}
+        className="rounded-md bg-[#70263E] px-5 py-3 text-white hover:bg-[#5C1E32]"
+      >
+        Sign Out
+      </button>
     </main>
   );
 }
