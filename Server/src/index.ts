@@ -6,6 +6,9 @@ import { rateLimit } from "express-rate-limit";
 
 import { supabase } from "./config/supabase.js";
 import { supabaseAdmin } from "./config/supabaseAdmin.js";
+import { requireAuth } from "./middleware/requireAuth.js";
+import { requireAdmin } from "./middleware/requireAdmin.js";
+
 
 dotenv.config();
 
@@ -40,6 +43,124 @@ app.get("/api/health", (_req, res) => {
   });
 });
 
+// staff endpoint
+
+app.post(
+  "/api/admin/staff",
+  requireAuth,
+  requireAdmin,
+  async (req, res) => {
+    try {
+      const { fullName, email, staffType, specialty } = req.body;
+
+      // Validate input
+      if (
+        typeof fullName !== "string" ||
+        !fullName.trim() ||
+        typeof email !== "string" ||
+        !email.trim() ||
+        !["barber", "stylist"].includes(staffType) ||
+        (specialty !== undefined && typeof specialty !== "string")
+      ) {
+        res.status(400).json({
+          error: "Invalid staff details",
+        });
+        return;
+      }
+
+      const normalizedEmail = email.trim().toLowerCase();
+
+          const { data: existingProfile, error: lookupError } =
+      await supabaseAdmin
+        .from("users")
+        .select("user_id")
+        .eq("email", normalizedEmail)
+        .maybeSingle();
+
+    if (lookupError) {
+      console.error("Staff email lookup failed:", lookupError.message);
+
+      res.status(500).json({
+        error: "Unable to check staff email",
+      });
+      return;
+    }
+
+    if (existingProfile) {
+      res.status(409).json({
+        error: "An account with this email already exists",
+      });
+      return;
+    }
+
+      // Invite staff using Supabase Auth
+      const { data: inviteData, error: inviteError } =
+        await supabaseAdmin.auth.admin.inviteUserByEmail(
+          normalizedEmail,
+          {
+            data: { full_name: fullName.trim() },
+            redirectTo: "http://localhost:5173/auth/callback",
+          }
+        );
+
+      if (inviteError || !inviteData.user) {
+        res.status(400).json({
+          error: inviteError?.message ?? "Unable to invite staff",
+        });
+        return;
+      }
+
+      const userId = inviteData.user.id;
+
+      // Create user profile
+      const { error: profileError } = await supabaseAdmin
+        .from("users")
+          .insert({
+            user_id: userId,
+            full_name: fullName.trim(),
+            email: normalizedEmail,
+            role: "staff",
+          });
+
+      if (profileError) {
+        console.error("Profile creation failed:", profileError);
+        res.status(500).json({
+          error: "Staff invitation sent, but profile setup failed",
+        });
+        return;
+      }
+
+      // Create staff-specific profile
+      const { error: staffError } = await supabaseAdmin
+        .from("staff")
+        .insert({
+          staff_id: userId,
+          staff_type: staffType,
+          specialty: specialty?.trim() || null,
+        }
+        );
+
+      if (staffError) {
+        console.error("Staff creation failed:", staffError);
+        res.status(500).json({
+          error: "Invitation sent, but staff setup failed",
+        });
+        return;
+      }
+
+      res.status(201).json({
+        message: "Staff invitation sent successfully",
+        staffId: userId,
+      });
+    } catch (error) {
+      console.error("Create staff failed:", error);
+      res.status(500).json({
+        error: "Internal server error",
+      });
+    }
+  }
+);
+
 // 4. Rate limiter for email checks
 const emailCheckLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -51,6 +172,24 @@ const emailCheckLimiter = rateLimit({
     message: "Too many requests. Please try again later.",
   },
 });
+app.get("/api/test-auth", requireAuth, (req, res) => {
+  res.json({
+    message: "You are authenticated",
+    email: res.locals.user.email,
+  });
+});
+
+app.get(
+  "/api/test-admin",
+  requireAuth,
+  requireAdmin,
+  (_req, res) => {
+    res.json({
+      message: "Welcome Admin!",
+      email: res.locals.user.email,
+    });
+  }
+);
 
 // 5. Check whether an email is already registered
 app.post(

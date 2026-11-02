@@ -35,7 +35,7 @@ const Navbar = () => {
 
           <span className="h-6 w-px bg-[#DDD5CC]" />
 
-          <Link to="/team" className="hover:text-[#70263E] transition-colors">
+          <Link to="/team/login" className="hover:text-[#70263E] transition-colors">
             Team portal
           </Link>
         </div>
@@ -76,7 +76,7 @@ const Navbar = () => {
             Our studio
           </Link>
 
-          <Link to="/team" onClick={() => setMenuOpen(false)}>
+          <Link to="/team/login" onClick={() => setMenuOpen(false)}>
             Team portal
           </Link>
 

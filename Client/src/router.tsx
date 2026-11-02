@@ -7,6 +7,7 @@ import Signin from "./pages/Signin";
 import AuthCallback from "./pages/AuthCallback";
 import Dashboard from "./pages/Dashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
+import TeamLogin from "./pages/TeamLogin";
 
 const router = createBrowserRouter([
   {
@@ -36,6 +37,10 @@ const router = createBrowserRouter([
       {
         path: "sign-in",
         element: <Signin />,
+      },
+      {
+        path: "team/login",
+        element: <TeamLogin />,
       },
       {
         path: "auth/callback",

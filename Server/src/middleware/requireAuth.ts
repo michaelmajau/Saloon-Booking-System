@@ -1,5 +1,5 @@
 import type { Request, Response, NextFunction } from "express";
-import { supabaseAdmin } from "../config/supabaseAdmin";
+import { supabaseAdmin } from "../config/supabaseAdmin.js";
 
 export const requireAuth = async (
   req: Request,
