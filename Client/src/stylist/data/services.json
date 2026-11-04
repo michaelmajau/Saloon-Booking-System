@@ -1,0 +1,9 @@
+[
+  { "id": "s1", "name": "Silk finish", "duration": 45, "price": 55 },
+  { "id": "s2", "name": "Consultation", "duration": 60, "price": 20 },
+  { "id": "s3", "name": "Colour refresh", "duration": 60, "price": 85 },
+  { "id": "s4", "name": "Cut & style", "duration": 60, "price": 65 },
+  { "id": "s5", "name": "Blow-dry & treatment", "duration": 75, "price": 60 },
+  { "id": "s6", "name": "Trim", "duration": 30, "price": 35 },
+  { "id": "s7", "name": "Balayage", "duration": 180, "price": 180 }
+]

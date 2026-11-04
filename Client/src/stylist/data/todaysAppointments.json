@@ -1,0 +1,7 @@
+[
+  { "start": "09:00", "clientId": "c1", "serviceId": "s1", "status": "confirmed", "notes": "" },
+  { "start": "10:30", "clientId": "c2", "serviceId": "s2", "status": "confirmed", "notes": "Bring inspiration photos." },
+  { "start": "12:00", "clientId": "c3", "serviceId": "s3", "status": "arrived", "notes": "" },
+  { "start": "14:30", "clientId": "c4", "serviceId": "s4", "status": "confirmed", "notes": "" },
+  { "start": "16:00", "clientId": "c5", "serviceId": "s5", "status": "confirmed", "notes": "" }
+]

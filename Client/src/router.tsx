@@ -14,7 +14,13 @@ import TeamLogin from "./pages/TeamLogin";
 import AdminLayout from "./pages/Admin/AdminLayout";
 import AdminDashboard from "./pages/Admin/AdminDashboard";
 import AdminSection from "./pages/Admin/AdminSection";
-import StaffDashboard from "./pages/StaffDashboard";
+// Stylist / staff workspace
+import { StylistLayout } from "./stylist/components/StylistLayout";
+import { DashboardPage as StaffOverview } from "./stylist/pages/DashboardPage";
+import { AppointmentsPage as StaffAppointments } from "./stylist/pages/AppointmentsPage";
+import { SchedulePage as StaffSchedule } from "./stylist/pages/SchedulePage";
+import { ClientsPage as StaffClients } from "./stylist/pages/ClientsPage";
+import { SettingsPage as StaffSettings } from "./stylist/pages/SettingsPage";
 
 const router = createBrowserRouter([
   // PUBLIC AND CUSTOMER ROUTES
@@ -68,11 +74,22 @@ const router = createBrowserRouter([
     ],
   },
 
+  // STAFF (STYLIST / BARBER) ROUTES
   {
     path: "/staff",
     element: <StaffRoute />,
     children: [
-      { path: "dashboard", element: <StaffDashboard /> },
+      {
+        element: <StylistLayout />,
+        children: [
+          { index: true, element: <StaffOverview /> },
+          { path: "dashboard", element: <StaffOverview /> },
+          { path: "appointments", element: <StaffAppointments /> },
+          { path: "schedule", element: <StaffSchedule /> },
+          { path: "clients", element: <StaffClients /> },
+          { path: "settings", element: <StaffSettings /> },
+        ],
+      },
     ],
   },
 
