@@ -369,7 +369,7 @@ function Signup() {
               <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-[#70263E]">
                 Are you a team member
               </p>
-              <Link to="team/login">
+              <Link to="/team/login">
               <p className="text-sm leading-7 text-[#82766E]">
                   Team Login
               </p>

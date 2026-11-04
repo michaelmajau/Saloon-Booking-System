@@ -30,7 +30,7 @@ const AdminSidebar = () => {
   };
 
   return (
-    <aside className="flex min-h-screen w-[280px] shrink-0 flex-col bg-[#34251F] px-6 py-8 text-[#F7F2EA]">
+    <aside className="flex min-h-screen w-[280px] shrink-0 flex-col bg-[#34251F] px-6 py-8 text-[#F7F2EA] max-lg:hidden">
 
       {/* BRAND */}
       <div className="flex items-center gap-3">

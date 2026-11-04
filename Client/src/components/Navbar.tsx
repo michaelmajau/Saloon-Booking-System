@@ -15,7 +15,7 @@ const Navbar = () => {
           to="/"
           className="font-serif text-[20px] text-[#70263E] whitespace-nowrap"
         >
-          Bookify Co.
+          The Chair &amp; Co.
         </Link>
 
         {/* Desktop Navigation */}
@@ -29,7 +29,7 @@ const Navbar = () => {
             Book
           </Link>
 
-          <Link to="/studio" className="hover:text-[#70263E] transition-colors">
+          <Link to="/#studio" className="hover:text-[#70263E] transition-colors">
             Our studio
           </Link>
 
@@ -72,7 +72,7 @@ const Navbar = () => {
             Book
           </Link>
 
-          <Link to="/studio" onClick={() => setMenuOpen(false)}>
+          <Link to="/#studio" onClick={() => setMenuOpen(false)}>
             Our studio
           </Link>
 
