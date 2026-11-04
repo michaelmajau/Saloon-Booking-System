@@ -358,7 +358,7 @@ function Signup() {
             <p className="mt-6 text-center text-sm text-[#82766E]">
               Already have an account?{" "}
               <Link
-                to="/signin"
+                to="/sign-in"
                 className="font-semibold text-[#70263E] hover:underline"
               >
                 Sign In
@@ -367,13 +367,13 @@ function Signup() {
 
             <div className="mt-12 border-t border-[#DDD5CC] pt-6">
               <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-[#70263E]">
-                Working Hours
+                Are you a team member
               </p>
-
+              <Link to="/team/login">
               <p className="text-sm leading-7 text-[#82766E]">
-                Book your next grooming appointment
-                at a time that works for you.
+                  Team Login
               </p>
+              </Link>
             </div>
           </div>
         </section>

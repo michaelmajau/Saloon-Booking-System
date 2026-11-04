@@ -15,7 +15,7 @@ const Navbar = () => {
           to="/"
           className="font-serif text-[20px] text-[#70263E] whitespace-nowrap"
         >
-          Bookify Co.
+          The Chair &amp; Co.
         </Link>
 
         {/* Desktop Navigation */}
@@ -29,13 +29,13 @@ const Navbar = () => {
             Book
           </Link>
 
-          <Link to="/studio" className="hover:text-[#70263E] transition-colors">
+          <Link to="/#studio" className="hover:text-[#70263E] transition-colors">
             Our studio
           </Link>
 
           <span className="h-6 w-px bg-[#DDD5CC]" />
 
-          <Link to="/team" className="hover:text-[#70263E] transition-colors">
+          <Link to="/team/login" className="hover:text-[#70263E] transition-colors">
             Team portal
           </Link>
         </div>
@@ -72,11 +72,11 @@ const Navbar = () => {
             Book
           </Link>
 
-          <Link to="/studio" onClick={() => setMenuOpen(false)}>
+          <Link to="/#studio" onClick={() => setMenuOpen(false)}>
             Our studio
           </Link>
 
-          <Link to="/team" onClick={() => setMenuOpen(false)}>
+          <Link to="/team/login" onClick={() => setMenuOpen(false)}>
             Team portal
           </Link>
 

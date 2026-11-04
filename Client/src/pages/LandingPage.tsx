@@ -1,5 +1,7 @@
 import { Link } from "react-router-dom";
 import "./landing.css";
+import salonInterior from "../assets/barber.avif";
+
 
 // Change this one line if the booking route is renamed in router.tsx
 const BOOKING_PATH = "/book";
@@ -38,19 +40,8 @@ const services: Service[] = [
 export default function LandingPage() {
   return (
     <div className="landing">
-      <header className="nav">
-        <Link to="/" className="nav__logo">The Chair &amp; Co.</Link>
-        <nav className="nav__links" aria-label="Main">
-          <Link to="/">Home</Link>
-          <Link to={BOOKING_PATH}>Book</Link>
-          <a href="#studio">Our studio</a>
-          <Link to="/team">Team portal</Link>
-        </nav>
-        <Link to={BOOKING_PATH} className="btn btn--primary">Book an appointment</Link>
-      </header>
-
       <section className="hero">
-        <div className="hero__image" role="img" aria-label="Salon interior with oval mirrors and styling chairs" />
+        <div className="hero__image" role="img" aria-label="Salon interior with oval mirrors and styling chairs" style={{ backgroundImage: `url(${salonInterior})` }} />
         <div className="hero__text">
           <p className="eyebrow">Independent salon · Soho</p>
           <h1>A chair for you. A little time for yourself.</h1>
@@ -111,7 +102,7 @@ export default function LandingPage() {
         <p className="eyebrow eyebrow--muted">For our team</p>
         <h2>Your day, beautifully organised.</h2>
         <p>Dedicated workspaces for salon owners, barbers and stylists.</p>
-        <Link to="/team" className="btn btn--outline">Open team portal</Link>
+        <Link to="/team/login" className="btn btn--outline">Open team portal</Link>
       </section>
 
       <footer className="footer">
@@ -129,7 +120,7 @@ export default function LandingPage() {
           <p>Tue–Fri, 9–7</p>
           <p>Saturday, 9–5</p>
         </div>
-        <Link to="/signin" className="footer__signin">Team sign in →</Link>
+        <Link to="/sign-in" className="footer__signin">Team sign in →</Link>
       </footer>
     </div>
   );
