@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import "./landing.css";
-import salonInterior from "../assets/salon-interior.jpg";
+import salonInterior from "../assets/barber.avif";
+
 
 // Change this one line if the booking route is renamed in router.tsx
 const BOOKING_PATH = "/book";
