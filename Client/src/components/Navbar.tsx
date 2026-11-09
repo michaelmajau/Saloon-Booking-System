@@ -1,14 +1,14 @@
 
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Menu, X } from "lucide-react";
+import { Menu, X , CalendarDays } from "lucide-react";
 
 const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
    <nav className="sticky top-0 z-50 w-full bg-[#F7F5F1] border-b border-[#DDD5CC]">
-      <div className="flex items-center justify-between px-6 md:px-12 lg:px-20 h-[50px]">
+      <div className="flex items-center justify-between px-6 md:px-12 lg:px-20 h-[60px]">
 
         {/* Logo */}
         <Link
@@ -43,8 +43,9 @@ const Navbar = () => {
         {/* Desktop Button */}
         <Link
           to="/sign-up"
-          className="hidden lg:inline-flex items-center justify-center  text-[15px] bg-[#70263E] text-white font-semibold px-4 py-1 rounded-[3px] border-2 border-[#29221F] hover:bg-[#592033] transition-colors"
+          className="hidden lg:inline-flex items-center justify-center  text-[15px] bg-[#70263E] text-white font-semibold px-4 py-1 rounded-[3px] border-2 border-[#29221F] hover:bg-[#592033] transition-colors gap-3"
         >
+        <CalendarDays size={18}/>
           Book an appointment
         </Link>
 
