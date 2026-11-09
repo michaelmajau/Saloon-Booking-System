@@ -1,4 +1,3 @@
-
 import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabase";
@@ -9,18 +8,16 @@ type TeamRole = "admin" | "barber" | "stylist";
 const TeamLogin = () => {
   const navigate = useNavigate();
 
-  // Form states
   const [selectedRole, setSelectedRole] = useState<TeamRole>("admin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
 
-  // Authentication states
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
 
     if (loading) return;
 
@@ -28,7 +25,6 @@ const TeamLogin = () => {
     setErrorMessage("");
 
     try {
-      // 1. Sign in using Supabase Authentication
       const { data, error } = await supabase.auth.signInWithPassword({
         email: email.trim().toLowerCase(),
         password,
@@ -39,7 +35,6 @@ const TeamLogin = () => {
         return;
       }
 
-      // 2. Retrieve the user's actual database role
       const { data: profile, error: profileError } = await supabase
         .from("users")
         .select("role")
@@ -52,7 +47,6 @@ const TeamLogin = () => {
         return;
       }
 
-      // 3. Handle administrator login
       if (profile.role === "admin") {
         if (selectedRole !== "admin") {
           await supabase.auth.signOut();
@@ -64,12 +58,11 @@ const TeamLogin = () => {
         return;
       }
 
-      // 4. Handle barber and stylist login
       if (profile.role === "staff") {
         const { data: staff, error: staffError } = await supabase
           .from("staff")
           .select("staff_type, is_active")
-          .eq("staff_id", data.user.id)
+          .eq("user_id", data.user.id)
           .single();
 
         if (staffError || !staff) {
@@ -81,7 +74,7 @@ const TeamLogin = () => {
         if (!staff.is_active) {
           await supabase.auth.signOut();
           setErrorMessage(
-            "Your staff account is inactive. Contact your administrator."
+            "Your staff account is inactive. Contact your administrator.",
           );
           return;
         }
@@ -89,7 +82,7 @@ const TeamLogin = () => {
         if (selectedRole !== staff.staff_type) {
           await supabase.auth.signOut();
           setErrorMessage(
-            `Please select the ${staff.staff_type} workspace.`
+            `Please select the ${staff.staff_type} workspace.`,
           );
           return;
         }
@@ -98,20 +91,15 @@ const TeamLogin = () => {
         return;
       }
 
-      // 5. Customers cannot use the Team Portal
       await supabase.auth.signOut();
       setErrorMessage(
-        "This portal is only available to salon team members."
+        "This portal is only available to salon team members.",
       );
-    } catch (err) {
-      console.error("Team login error:", err);
+    } catch (error) {
+      console.error("Team login error:", error);
 
-      // Avoid leaving an authenticated session after an error
       await supabase.auth.signOut();
-
-      setErrorMessage(
-        "Something went wrong. Please try again."
-      );
+      setErrorMessage("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -119,8 +107,6 @@ const TeamLogin = () => {
 
   return (
     <main className="flex w-full flex-col lg:flex-row">
-
-      {/* LEFT SIDE - IMAGE */}
       <div className="w-full lg:w-1/2">
         <img
           src={Welcome}
@@ -129,12 +115,8 @@ const TeamLogin = () => {
         />
       </div>
 
-      {/* RIGHT SIDE - LOGIN FORM */}
       <div className="flex w-full items-center justify-center bg-[#F7F2EA] px-6 py-8 lg:w-1/2 lg:px-10">
-
         <div className="w-full max-w-[490px]">
-
-          {/* HEADING */}
           <h1 className="font-serif text-[28px] text-[#33241D] md:text-[34px]">
             Welcome back.
           </h1>
@@ -143,7 +125,6 @@ const TeamLogin = () => {
             Choose your workspace and sign in.
           </p>
 
-          {/* ROLE SELECTION */}
           <div className="mt-6 grid grid-cols-3 border border-[#DDD2C6]">
             {(["admin", "barber", "stylist"] as TeamRole[]).map(
               (role) => (
@@ -163,14 +144,11 @@ const TeamLogin = () => {
                 >
                   {role}
                 </button>
-              )
+              ),
             )}
           </div>
 
-          {/* LOGIN FORM */}
           <form onSubmit={handleSubmit} className="mt-6 space-y-4">
-
-            {/* EMAIL ADDRESS */}
             <div>
               <label
                 htmlFor="team-email"
@@ -184,14 +162,13 @@ const TeamLogin = () => {
                 type="email"
                 required
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(event) => setEmail(event.target.value)}
                 placeholder="Enter your email"
                 autoComplete="email"
                 className="h-11 w-full border border-[#DDD2C6] bg-white px-4 text-[13px] text-[#29221F] outline-none focus:border-[#70263E]"
               />
             </div>
 
-            {/* PASSWORD */}
             <div>
               <label
                 htmlFor="team-password"
@@ -205,21 +182,21 @@ const TeamLogin = () => {
                 type="password"
                 required
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(event) => setPassword(event.target.value)}
                 placeholder="Enter your password"
                 autoComplete="current-password"
                 className="h-11 w-full border border-[#DDD2C6] bg-white px-4 text-[13px] text-[#29221F] outline-none focus:border-[#70263E]"
               />
             </div>
 
-            {/* REMEMBER ME AND FORGOT PASSWORD */}
             <div className="flex items-center justify-between gap-3">
-
               <label className="flex cursor-pointer items-center gap-2 text-[13px] text-[#82766E]">
                 <input
                   type="checkbox"
                   checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
+                  onChange={(event) =>
+                    setRememberMe(event.target.checked)
+                  }
                   className="accent-[#70263E]"
                 />
                 Remember me
@@ -228,10 +205,8 @@ const TeamLogin = () => {
               <span className="text-[13px] text-[#82766E]">
                 Forgot password?
               </span>
-
             </div>
 
-            {/* ERROR MESSAGE */}
             {errorMessage && (
               <p
                 role="alert"
@@ -241,7 +216,6 @@ const TeamLogin = () => {
               </p>
             )}
 
-            {/* SIGN IN BUTTON */}
             <button
               type="submit"
               disabled={loading}
@@ -251,14 +225,11 @@ const TeamLogin = () => {
                 ? "Signing in..."
                 : `Sign in as ${selectedRole}`}
             </button>
-
           </form>
 
-          {/* FOOTER */}
           <p className="mt-5 text-center text-xs text-[#82766E]">
             Staff accounts are created by the salon administrator.
           </p>
-
         </div>
       </div>
     </main>

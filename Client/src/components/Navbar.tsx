@@ -1,59 +1,104 @@
-
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Menu, X , CalendarDays } from "lucide-react";
+import { CalendarDays, Menu, Scissors, X } from "lucide-react";
 
-const Navbar = () => {
+function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [hasScrolled, setHasScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setHasScrolled(window.scrollY > 30);
+    };
+
+    handleScroll();
+    window.addEventListener("scroll", handleScroll);
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, []);
+
+  const closeMenu = () => setMenuOpen(false);
+
+  const navBackground = hasScrolled
+    ? "border-[#5C443A] bg-[#3A2923] shadow-lg"
+    : "border-[#DDD5CC] bg-[#F7F5F1]";
+
+  const mainText = hasScrolled ? "text-[#FFF8F0]" : "text-[#35231E]";
+
+  const linkText = hasScrolled
+    ? "text-[#E7D8CC] hover:text-[#FFF8F0]"
+    : "text-[#756960] hover:text-[#70263E]";
 
   return (
-   <nav className="sticky top-0 z-50 w-full bg-[#F7F5F1] border-b border-[#DDD5CC]">
-      <div className="flex items-center justify-between px-6 md:px-12 lg:px-20 h-[60px]">
-
-        {/* Logo */}
+    <nav
+      className={`sticky top-0 z-50 w-full border-b transition-all duration-300 ${navBackground}`}
+    >
+      <div className="flex h-[58px] items-center justify-between px-6 md:px-12 lg:px-20">
+        {/* Brand */}
         <Link
           to="/"
-          className="font-serif text-[20px] text-[#70263E] whitespace-nowrap"
+          onClick={closeMenu}
+          className={`flex items-center gap-3 ${mainText}`}
+          aria-label="Bookify home"
         >
-          The Chair &amp; Co.
+          <Scissors
+            size={24}
+            strokeWidth={1.8}
+            className={hasScrolled ? "text-[#FFF8F0]" : "text-[#70263E]"}
+          />
+
+          <span className="font-serif text-[26px] tracking-[-0.04em]">
+            Bookify
+          </span>
         </Link>
 
-        {/* Desktop Navigation */}
-        <div className="hidden lg:flex items-center gap-10 text-[#82766E] text-[14px]">
-
-          <Link to="/" className="hover:text-[#70263E] transition-colors">
+        {/* Desktop navigation */}
+        <div className={`hidden items-center gap-10 text-sm lg:flex ${linkText}`}>
+          <Link to="/" className="transition">
             Home
           </Link>
 
-          <Link to="/book" className="hover:text-[#70263E] transition-colors">
+          <Link to="/dashboard#book-appointment" className="transition">
             Book
           </Link>
 
-          <Link to="/#studio" className="hover:text-[#70263E] transition-colors">
+          <Link to="/#studio" className="transition">
             Our studio
           </Link>
 
-          <span className="h-6 w-px bg-[#DDD5CC]" />
+          <span
+            className={`h-6 w-px ${
+              hasScrolled ? "bg-[#6B5145]" : "bg-[#DDD5CC]"
+            }`}
+          />
 
-          <Link to="/team/login" className="hover:text-[#70263E] transition-colors">
+          <Link to="/team/login" className="transition">
             Team portal
           </Link>
         </div>
 
-        {/* Desktop Button */}
+        {/* Desktop booking button */}
         <Link
-          to="/sign-up"
-          className="hidden lg:inline-flex items-center justify-center  text-[15px] bg-[#70263E] text-white font-semibold px-4 py-1 rounded-[3px] border-2 border-[#29221F] hover:bg-[#592033] transition-colors gap-3"
+          to="/dashboard#book-appointment"
+          className={`hidden items-center gap-2 border-2 px-4 py-2 text-sm font-semibold transition lg:inline-flex ${
+            hasScrolled
+              ? "border-[#F7F0E5] bg-[#F7F0E5] text-[#3A2923] hover:bg-[#E7D8CC]"
+              : "border-[#35231E] bg-[#70263E] text-white hover:bg-[#5C1E32]"
+          }`}
         >
-        <CalendarDays size={18}/>
+          <CalendarDays size={17} />
           Book an appointment
         </Link>
 
-        {/* Mobile Menu Button */}
+        {/* Mobile menu button */}
         <button
           type="button"
-          className="lg:hidden text-[#70263E]"
-          onClick={() => setMenuOpen(!menuOpen)}
+          onClick={() => setMenuOpen((open) => !open)}
+          className={`lg:hidden ${
+            hasScrolled ? "text-[#FFF8F0]" : "text-[#70263E]"
+          }`}
           aria-label="Toggle navigation menu"
           aria-expanded={menuOpen}
         >
@@ -61,37 +106,49 @@ const Navbar = () => {
         </button>
       </div>
 
-      {/* Mobile Navigation */}
+      {/* Mobile navigation */}
       {menuOpen && (
-        <div className="lg:hidden flex flex-col gap-5 px-6 py-6 border-t border-[#DDD5CC] text-[#82766E]">
+        <div
+          className={`border-t px-6 py-6 lg:hidden ${
+            hasScrolled
+              ? "border-[#6B5145] bg-[#3A2923]"
+              : "border-[#DDD5CC] bg-[#F7F5F1]"
+          }`}
+        >
+          <div className={`flex flex-col gap-5 ${linkText}`}>
+            <Link to="/" onClick={closeMenu}>
+              Home
+            </Link>
 
-          <Link to="/" onClick={() => setMenuOpen(false)}>
-            Home
-          </Link>
+            <Link to="/dashboard#book-appointment" onClick={closeMenu}>
+              Book
+            </Link>
 
-          <Link to="/book" onClick={() => setMenuOpen(false)}>
-            Book
-          </Link>
+            <Link to="/#studio" onClick={closeMenu}>
+              Our studio
+            </Link>
 
-          <Link to="/#studio" onClick={() => setMenuOpen(false)}>
-            Our studio
-          </Link>
+            <Link to="/team/login" onClick={closeMenu}>
+              Team portal
+            </Link>
 
-          <Link to="/team/login" onClick={() => setMenuOpen(false)}>
-            Team portal
-          </Link>
-
-          <Link
-            to="/sign-up"
-            onClick={() => setMenuOpen(false)}
-            className="bg-[#70263E] text-white text-center px-6 py-4 rounded"
-          >
-            Book an appointment
-          </Link>
+            <Link
+              to="/dashboard#book-appointment"
+              onClick={closeMenu}
+              className={`mt-2 inline-flex items-center justify-center gap-2 px-5 py-3 font-semibold ${
+                hasScrolled
+                  ? "bg-[#F7F0E5] text-[#3A2923]"
+                  : "bg-[#70263E] text-white"
+              }`}
+            >
+              <CalendarDays size={18} />
+              Book an appointment
+            </Link>
+          </div>
         </div>
       )}
     </nav>
   );
-};
+}
 
 export default Navbar;

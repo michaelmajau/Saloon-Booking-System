@@ -35,11 +35,11 @@ const AdminSidebar = () => {
       {/* BRAND */}
       <div className="flex items-center gap-3">
         <div className="flex h-10 w-10 items-center justify-center rounded-full border border-[#A98E7C] font-serif text-xl">
-          C
+          B
         </div>
 
         <h2 className="font-serif text-[23px]">
-          The Chair & Co.
+          Bookify
         </h2>
       </div>
 

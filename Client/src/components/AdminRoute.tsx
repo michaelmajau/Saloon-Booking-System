@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
-import { Navigate, Outlet } from "react-router-dom";import { supabase } from "../lib/supabase";
+import { Navigate, Outlet } from "react-router-dom";
+import { supabase } from "../lib/supabase";
+
 type AccessState = "checking" | "allowed" | "denied";
 
 /** Guards the entire administrator area using the role stored in Supabase. */
