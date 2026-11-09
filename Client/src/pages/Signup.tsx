@@ -172,7 +172,7 @@ function Signup() {
             </p>
 
             <h1 className="mb-3 font-serif text-4xl text-[#29221F] sm:text-5xl">
-              Your chair is waiting.
+              Bookify is ready when you are.
             </h1>
 
             <p className="mb-8 text-sm leading-6 text-[#82766E]">
@@ -358,7 +358,7 @@ function Signup() {
             <p className="mt-6 text-center text-sm text-[#82766E]">
               Already have an account?{" "}
               <Link
-                to="/signin"
+                to="/sign-in"
                 className="font-semibold text-[#70263E] hover:underline"
               >
                 Sign In
@@ -367,13 +367,13 @@ function Signup() {
 
             <div className="mt-12 border-t border-[#DDD5CC] pt-6">
               <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-[#70263E]">
-                Working Hours
+                Are you a team member
               </p>
-
+              <Link to="/team/login">
               <p className="text-sm leading-7 text-[#82766E]">
-                Book your next grooming appointment
-                at a time that works for you.
+                  Team Login
               </p>
+              </Link>
             </div>
           </div>
         </section>
@@ -382,7 +382,7 @@ function Signup() {
         <section className="relative hidden min-h-screen lg:block">
           <img
             src={SignupImage}
-            alt="The Chair & Co. salon interior"
+            alt="Bookify salon interior"
             className="absolute inset-0 h-full w-full object-cover grayscale"
           />
 
@@ -390,7 +390,7 @@ function Signup() {
 
           <div className="absolute bottom-16 left-12 right-12 text-white">
             <p className="mb-3 text-xs uppercase tracking-[0.3em]">
-              The Chair & Co.
+              Bookify
             </p>
 
             <h2 className="max-w-lg font-serif text-4xl leading-tight">
