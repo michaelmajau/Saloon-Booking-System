@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import Welcome from "../assets/signup.avif";
 
@@ -202,9 +202,12 @@ const TeamLogin = () => {
                 Remember me
               </label>
 
-              <span className="text-[13px] text-[#82766E]">
+              <Link
+                to="/forgot-password?from=team"
+                className="text-[13px] text-[#70263E] hover:underline"
+              >
                 Forgot password?
-              </span>
+              </Link>
             </div>
 
             {errorMessage && (

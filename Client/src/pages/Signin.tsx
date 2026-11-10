@@ -99,6 +99,14 @@ function Signin() {
               autoComplete="current-password"
               className="w-full rounded-md border border-[#DDD5CC] bg-white px-4 py-3 outline-none focus:border-[#70263E]"
             />
+            <div className="mt-2 text-right">
+              <Link
+                to="/forgot-password"
+                className="text-sm text-[#70263E] hover:underline"
+              >
+                Forgot password?
+              </Link>
+            </div>
           </div>
 
           {/* Error message */}

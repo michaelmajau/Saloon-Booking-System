@@ -16,6 +16,8 @@ import AdminDashboard from "./pages/Admin/AdminDashboard";
 import AdminOperations from "./pages/Admin/AdminOperations";
 import StaffDashboard from "./pages/StaffDashboard";
 import SetStaffPassword from "./pages/SetStaffPassword";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 
 const router = createBrowserRouter([
   // PUBLIC AND CUSTOMER ROUTES
@@ -59,6 +61,14 @@ const router = createBrowserRouter([
       {
       path: "auth/set-password",
       element: <SetStaffPassword />,
+      },
+      {
+        path: "forgot-password",
+        element: <ForgotPassword />,
+      },
+      {
+        path: "reset-password",
+        element: <ResetPassword />,
       },
 
       // Customer dashboard
