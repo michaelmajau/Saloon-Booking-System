@@ -71,6 +71,7 @@ const router = createBrowserRouter([
         element: <ResetPassword />,
       },
 
+
       // Customer dashboard
       {
         element: <ProtectedRoute />,
