@@ -63,7 +63,7 @@ app.post("/api/auth/check-email", emailCheckLimiter, async (req, res) => {
 });
 
 app.get("/api/services", async (_req, res) => {
-  const { data, error } = await supabase.from("services").select("service_id, service_name, price, duration_minutes").order("service_name");
+  const { data, error } = await supabaseAdmin.from("services").select("service_id, service_name, price, duration_minutes").order("service_name");
   if (error) return res.status(500).json({ success: false, message: "Unable to fetch services." });
   res.json({ success: true, services: data, currency: "KES" });
 });
@@ -178,7 +178,7 @@ app.patch("/api/admin/settings", requireAuth, requireAdmin, async (req, res) => 
 app.get("/api/staff/dashboard", requireAuth, requireStaff, async (req, res) => {
   try {
     const date = isDate(req.query.date) ? req.query.date : today();
-    const { data, error } = await supabaseAdmin.from("appointments").select(appointmentFields).eq("staff_id", res.locals.user.id).eq("appointment_date", date).order("start_time"); if (error) throw error;
+    const { data, error } = await supabaseAdmin.from("appointments").select(appointmentFields).eq("staff_id", res.locals.staff.staff_id).eq("appointment_date", date).order("start_time"); if (error) throw error;
     const appointments = await decorate((data ?? []) as Record<string, unknown>[]);
     const completedRevenue = appointments.filter((x) => x.status === "completed" && x.payment_status === "paid").reduce((sum, x) => sum + Number(x.total_amount), 0);
     const bookedMinutes = appointments.filter((x) => !["cancelled", "no_show"].includes(String(x.status))).reduce((sum, x) => sum + ((Date.parse(`1970-01-01T${String(x.end_time)}`) - Date.parse(`1970-01-01T${String(x.start_time)}`)) / 60000), 0);
