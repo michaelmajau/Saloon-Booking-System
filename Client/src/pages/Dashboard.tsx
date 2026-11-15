@@ -61,6 +61,7 @@ function Dashboard() {
   );
   const [availableSlots, setAvailableSlots] = useState<string[]>([]);
   const [selectedTime, setSelectedTime] = useState("");
+  const [bookingStep, setBookingStep] = useState<1 | 2 | 3>(1);
 
   const [catalogueLoading, setCatalogueLoading] = useState(true);
   const [slotsLoading, setSlotsLoading] = useState(false);
@@ -402,261 +403,142 @@ function Dashboard() {
           )}
         </section>
 
-        {/* Continuous booking form */}
+        {/* Guided three-step booking experience */}
         <section id="book-appointment" className="mt-16 scroll-mt-8">
-          <p className="text-sm font-semibold uppercase tracking-[0.25em] text-[#70263E]">
-            New appointment
-          </p>
+          <p className="text-sm font-semibold uppercase tracking-[0.25em] text-[#70263E]">New appointment</p>
+          <div className="mt-4 flex flex-col justify-between gap-4 md:flex-row md:items-end">
+            <h2 style={serifStyle} className="text-5xl leading-tight text-[#35231E] md:text-6xl">Your next visit, beautifully simple.</h2>
+            <p className="max-w-sm text-lg text-[#82766E]">Choose your service, your professional, and a time that suits you.</p>
+          </div>
 
-          <h2
-            style={serifStyle}
-            className="mt-5 text-5xl leading-none text-[#35231E] md:text-6xl"
-          >
-            Make time for a fresh start.
-          </h2>
+          <div className="mt-9 grid border border-[#DDD5CC] bg-[#FCFAF6] md:grid-cols-3" aria-label="Booking progress">
+            {([
+              [1, "Choose a service"],
+              [2, "Choose your professional"],
+              [3, "Date, time & details"],
+            ] as const).map(([step, label]) => (
+              <button
+                key={step}
+                type="button"
+                disabled={(step === 2 && !selectedService) || (step === 3 && (!selectedService || !selectedBarber))}
+                onClick={() => setBookingStep(step)}
+                aria-current={bookingStep === step ? "step" : undefined}
+                className={`flex items-center gap-4 border-b-4 px-6 py-5 text-left transition md:border-r md:last:border-r-0 ${bookingStep === step ? "border-b-[#70263E] bg-white text-[#35231E]" : "border-b-transparent text-[#82766E] hover:bg-white/70"} disabled:cursor-not-allowed disabled:opacity-50`}
+              >
+                <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-full border text-sm ${bookingStep === step ? "border-[#70263E] bg-[#70263E] text-white" : "border-[#D7CABC]"}`}>0{step}</span>
+                <span className="text-sm font-semibold">{label}</span>
+              </button>
+            ))}
+          </div>
 
-          <p className="mt-5 max-w-xl text-lg text-[#82766E]">
-            Choose your service, preferred barber, day, and available time.
-          </p>
-
-          <form
-            onSubmit={handleBooking}
-            className="mt-10 grid gap-8 lg:grid-cols-[1fr_380px]"
-          >
-            <div className="border border-[#DDD5CC] bg-[#FCFAF6] p-6 md:p-10">
-              {/* Step 1 */}
-              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[#70263E]">
-                01 / Choose your service
-              </p>
-
-              {catalogueLoading && (
-                <p className="mt-8 text-[#82766E]">Loading services…</p>
-              )}
-
-              <div className="mt-8 grid gap-4 md:grid-cols-2">
-                {services.map((service) => {
-                  const isSelected =
-                    selectedService?.service_id === service.service_id;
-
-                  return (
-                    <button
-                      key={service.service_id}
-                      type="button"
-                      onClick={() => {
-                        setSelectedService(service);
-                        setSelectedTime("");
-                      }}
-                      className={`border p-6 text-left transition ${
-                        isSelected
-                          ? "border-l-8 border-[#70263E] bg-[#F3E2E4]"
-                          : "border-[#DDD5CC] bg-white hover:border-[#70263E]"
-                      }`}
-                    >
-                      <p className="text-sm text-[#82766E]">Service</p>
-
-                      <h3 className="mt-3 text-2xl font-semibold text-[#35231E]">
-                        {service.service_name}
-                      </h3>
-
-                      <p className="mt-3 text-sm text-[#82766E]">
-                        {service.duration_minutes} min · {kes(service.price)}
-                      </p>
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* Step 2 */}
-              <div className="mt-12 border-t border-[#DDD5CC] pt-8">
-                <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[#70263E]">
-                  02 / Choose your barber
-                </p>
-
-                {!selectedService && (
-                  <p className="mt-4 text-[#82766E]">
-                    Choose a service first.
-                  </p>
-                )}
-
-                {selectedService && (
-                  <div className="mt-6 grid gap-4 md:grid-cols-2">
-                    {barbers.map((barber) => {
-                      const isSelected =
-                        selectedBarber?.staff_id === barber.staff_id;
-
+          <form onSubmit={handleBooking} className="mt-6 grid gap-7 border border-[#DDD5CC] bg-[#FCFAF6] p-5 md:p-9 lg:grid-cols-[minmax(0,1fr)_360px] lg:p-10">
+            <div className="flex min-h-[430px] flex-col">
+              {bookingStep === 1 && (
+                <div>
+                  <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[#35231E]">Select a service</p>
+                  <p className="mt-3 text-[#82766E]">Choose the treatment that feels right for this visit.</p>
+                  {catalogueLoading && <p className="mt-8 text-[#82766E]">Loading services…</p>}
+                  {!catalogueLoading && services.length === 0 && <p className="mt-8 text-[#82766E]">No services are available right now.</p>}
+                  <div className="mt-8 grid gap-4 sm:grid-cols-2">
+                    {services.map((service) => {
+                      const active = selectedService?.service_id === service.service_id;
                       return (
-                        <button
-                          key={barber.staff_id}
-                          type="button"
+                        <button key={service.service_id} type="button" aria-pressed={active}
                           onClick={() => {
-                            setSelectedBarber(barber);
-                            setSelectedTime("");
+                            if (selectedService?.service_id !== service.service_id) {
+                              setSelectedBarber(null);
+                              setSelectedTime("");
+                            }
+                            setSelectedService(service);
+                            setBookingError("");
+                            setBookingSuccess("");
                           }}
-                          className={`border p-5 text-left transition ${
-                            isSelected
-                              ? "border-l-8 border-[#70263E] bg-[#F3E2E4]"
-                              : "border-[#DDD5CC] bg-white hover:border-[#70263E]"
-                          }`}
-                        >
-                          <p className="font-semibold text-[#35231E]">
-                            {barber.full_name}
-                          </p>
-
-                          <p className="mt-2 text-sm capitalize text-[#82766E]">
-                            {barber.staff_type}
-                            {barber.specialty ? ` · ${barber.specialty}` : ""}
-                          </p>
+                          className={`min-h-[165px] border p-6 text-left transition ${active ? "border-l-[6px] border-[#70263E] bg-[#F3E4E5]" : "border-[#DDD5CC] bg-white hover:border-[#70263E]"}`}>
+                          <h3 className="text-xl font-semibold text-[#35231E]">{service.service_name}</h3>
+                          <p className="mt-6 text-sm text-[#82766E]">{service.duration_minutes} min · {kes(service.price)}</p>
                         </button>
                       );
                     })}
                   </div>
-                )}
-              </div>
+                </div>
+              )}
 
-              {/* Step 3 */}
-              <div className="mt-12 border-t border-[#DDD5CC] pt-8">
-                <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[#70263E]">
-                  03 / Choose your date and time
-                </p>
-
-                {!selectedBarber && selectedService && (
-                  <p className="mt-4 text-[#82766E]">
-                    Choose your preferred barber first.
-                  </p>
-                )}
-
-                {selectedBarber && (
-                  <>
-                    <label className="mt-6 block text-sm font-semibold text-[#35231E]">
-                      Appointment date
-                    </label>
-
-                    <input
-                      type="date"
-                      value={bookingDate}
-                      min={new Date().toISOString().slice(0, 10)}
-                      onChange={(event) => setBookingDate(event.target.value)}
-                      className="mt-3 border border-[#DDD5CC] bg-white px-4 py-3 text-[#35231E] outline-none focus:border-[#70263E]"
-                    />
-
-                    <p className="mt-8 text-sm font-semibold text-[#35231E]">
-                      Available times
-                    </p>
-
-                    {slotsLoading && (
-                      <p className="mt-4 text-[#82766E]">
-                        Checking available times…
-                      </p>
-                    )}
-
-                    {!slotsLoading && availableSlots.length === 0 && (
-                      <p className="mt-4 text-[#82766E]">
-                        No times are available on this date. Please choose
-                        another day.
-                      </p>
-                    )}
-
-                    <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
-                      {availableSlots.map((slot) => (
-                        <button
-                          key={slot}
-                          type="button"
-                          onClick={() => setSelectedTime(slot)}
-                          className={`border px-4 py-3 text-sm font-semibold transition ${
-                            selectedTime === slot
-                              ? "border-[#70263E] bg-[#F3E2E4] text-[#70263E]"
-                              : "border-[#DDD5CC] bg-white text-[#35231E] hover:border-[#70263E]"
-                          }`}
-                        >
-                          {slot}
+              {bookingStep === 2 && (
+                <div>
+                  <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[#35231E]">Choose your professional</p>
+                  <p className="mt-3 text-[#82766E]">Select the barber or stylist you'd like to see.</p>
+                  {barbers.length === 0 && <p className="mt-8 text-[#82766E]">No professionals are available right now.</p>}
+                  <div className="mt-8 grid gap-4 sm:grid-cols-2">
+                    {barbers.map((barber) => {
+                      const active = selectedBarber?.staff_id === barber.staff_id;
+                      return (
+                        <button key={barber.staff_id} type="button" aria-pressed={active}
+                          onClick={() => { setSelectedBarber(barber); setSelectedTime(""); setBookingError(""); }}
+                          className={`flex items-center gap-4 border p-6 text-left transition ${active ? "border-l-[6px] border-[#70263E] bg-[#F3E4E5]" : "border-[#DDD5CC] bg-white hover:border-[#70263E]"}`}>
+                          <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-[#35231E] text-sm font-semibold text-white">{barber.full_name.split(" ").map((n) => n[0]).slice(0, 2).join("")}</span>
+                          <span><span className="block font-semibold text-[#35231E]">{barber.full_name}</span><span className="mt-1 block text-sm capitalize text-[#82766E]">{barber.staff_type}{barber.specialty ? ` · ${barber.specialty}` : ""}</span></span>
                         </button>
-                      ))}
-                    </div>
-                  </>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {bookingStep === 3 && (
+                <div>
+                  <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[#35231E]">Date, time & details</p>
+                  <p className="mt-3 text-[#82766E]">Choose an available time for your appointment.</p>
+                  <label htmlFor="booking-date" className="mt-8 block text-sm font-semibold text-[#35231E]">Appointment date</label>
+                  <input id="booking-date" type="date" value={bookingDate}
+                    min={new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Nairobi", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date())}
+                    onChange={(event) => { setBookingDate(event.target.value); setSelectedTime(""); }}
+                    className="mt-3 w-full max-w-sm border border-[#DDD5CC] bg-white px-4 py-3 text-[#35231E] outline-none focus:border-[#70263E]" />
+                  <p className="mt-8 text-sm font-semibold text-[#35231E]">Available times</p>
+                  {slotsLoading && <p className="mt-4 text-[#82766E]">Checking available times…</p>}
+                  {!slotsLoading && availableSlots.length === 0 && <p className="mt-4 text-[#82766E]">No available times for this date. Please choose another day.</p>}
+                  <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                    {!slotsLoading && availableSlots.map((slot) => (
+                      <button key={slot} type="button" onClick={() => setSelectedTime(slot)} aria-pressed={selectedTime === slot}
+                        className={`border px-4 py-3 text-sm font-semibold transition ${selectedTime === slot ? "border-[#70263E] bg-[#F3E4E5] text-[#70263E]" : "border-[#DDD5CC] bg-white text-[#35231E] hover:border-[#70263E]"}`}>{slot.slice(0, 5)}</button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {bookingError && <p role="alert" className="mt-6 border border-red-200 bg-red-50 p-4 text-sm text-red-700">{bookingError}</p>}
+              {bookingSuccess && <p role="status" className="mt-6 border border-green-200 bg-green-50 p-4 text-sm text-green-700">{bookingSuccess}</p>}
+
+              <div className="mt-auto flex items-center justify-between gap-4 border-t border-[#DDD5CC] pt-7">
+                {bookingStep > 1 ? (
+                  <button type="button" onClick={() => setBookingStep((bookingStep - 1) as 1 | 2)} className="border border-[#D7CABC] px-6 py-3 font-semibold text-[#35231E] hover:bg-white">← Back</button>
+                ) : <span />}
+                {bookingStep < 3 ? (
+                  <button type="button" disabled={bookingStep === 1 ? !selectedService : !selectedBarber}
+                    onClick={() => setBookingStep((bookingStep + 1) as 2 | 3)}
+                    className="bg-[#70263E] px-8 py-4 font-semibold text-white transition hover:bg-[#5C1E32] disabled:cursor-not-allowed disabled:opacity-40">Continue →</button>
+                ) : (
+                  <button type="submit" disabled={bookingLoading || !selectedService || !selectedBarber || !selectedTime}
+                    className="bg-[#70263E] px-8 py-4 font-semibold text-white transition hover:bg-[#5C1E32] disabled:cursor-not-allowed disabled:opacity-40">{bookingLoading ? "Confirming…" : "Confirm appointment →"}</button>
                 )}
               </div>
             </div>
 
-            {/* Live summary */}
-            <aside className="h-fit border-t-4 border-[#70263E] bg-white p-8">
-              <p className="text-sm font-semibold uppercase tracking-[0.25em] text-[#70263E]">
-                Your appointment
-              </p>
-
-              {selectedService ? (
-                <>
-                  <h3 style={serifStyle} className="mt-8 text-4xl text-[#35231E]">
-                    {selectedService.service_name}
-                  </h3>
-
-                  <p className="mt-4 text-[#82766E]">
-                    {selectedBarber
-                      ? `with ${selectedBarber.full_name}`
-                      : "Choose your preferred barber"}
-                  </p>
-
-                  <div className="mt-8 space-y-4 border-t border-[#DDD5CC] pt-6 text-sm">
-                    <div className="flex justify-between gap-5">
-                      <span className="text-[#82766E]">Date</span>
-                      <span className="text-right text-[#35231E]">
-                        {selectedBarber ? formatDate(bookingDate) : "—"}
-                      </span>
-                    </div>
-
-                    <div className="flex justify-between gap-5">
-                      <span className="text-[#82766E]">Time</span>
-                      <span className="text-[#35231E]">
-                        {selectedTime || "—"}
-                      </span>
-                    </div>
-
-                    <div className="flex justify-between gap-5">
-                      <span className="text-[#82766E]">Duration</span>
-                      <span className="text-[#35231E]">
-                        {selectedService.duration_minutes} min
-                      </span>
-                    </div>
-
-                    <div className="flex justify-between gap-5 border-t border-[#DDD5CC] pt-4 font-semibold">
-                      <span className="text-[#82766E]">Total</span>
-                      <span className="text-[#35231E]">
-                        {kes(selectedService.price)}
-                      </span>
-                    </div>
-                  </div>
-
-                  {bookingError && (
-                    <p className="mt-6 border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-                      {bookingError}
-                    </p>
-                  )}
-
-                  {bookingSuccess && (
-                    <p className="mt-6 border border-green-200 bg-green-50 p-3 text-sm text-green-700">
-                      {bookingSuccess}
-                    </p>
-                  )}
-
-                  <button
-                    type="submit"
-                    disabled={
-                      bookingLoading ||
-                      !selectedService ||
-                      !selectedBarber ||
-                      !selectedTime
-                    }
-                    className="mt-8 w-full bg-[#70263E] px-6 py-4 text-sm font-semibold text-white transition hover:bg-[#5C1E32] disabled:cursor-not-allowed disabled:bg-[#B9A796]"
-                  >
-                    {bookingLoading
-                      ? "Confirming appointment…"
-                      : "Confirm appointment"}
-                  </button>
-                </>
-              ) : (
-                <p className="mt-8 text-[#82766E]">
-                  Select a service to begin your booking.
-                </p>
-              )}
+            <aside className="h-fit border-t-[6px] border-[#70263E] bg-white p-6 shadow-[0_16px_50px_rgba(53,35,30,0.07)] md:p-8">
+              <p className="text-xs font-semibold uppercase tracking-[0.25em] text-[#70263E]">Your appointment</p>
+              <h3 style={serifStyle} className="mt-8 text-4xl leading-tight text-[#35231E]">{selectedService?.service_name ?? "Your next visit"}</h3>
+              <p className="mt-4 text-sm leading-6 text-[#82766E]">{selectedService ? "A little time set aside just for you." : "Select a service to begin your booking."}</p>
+              <div className="mt-8 flex items-center gap-4 bg-[#F3ECE3] p-4">
+                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-[#35231E] text-xs font-bold text-white">{selectedBarber ? selectedBarber.full_name.split(" ").map((n) => n[0]).slice(0, 2).join("") : "?"}</span>
+                <div className="min-w-0 flex-1"><p className="text-[10px] uppercase tracking-wider text-[#82766E]">With</p><p className="truncate text-sm font-semibold text-[#35231E]">{selectedBarber?.full_name ?? "Choose a professional"}</p></div>
+                {selectedBarber && <button type="button" onClick={() => setBookingStep(2)} className="text-xs font-semibold text-[#70263E] hover:underline">Change</button>}
+              </div>
+              <div className="mt-8 space-y-5 border-t border-[#DDD5CC] pt-6 text-sm">
+                <div className="flex justify-between gap-4"><span className="text-[#82766E]">Date</span><span className="text-right text-[#35231E]">{selectedBarber ? formatDate(bookingDate) : "—"}</span></div>
+                <div className="flex justify-between gap-4"><span className="text-[#82766E]">Time</span><span className="text-[#35231E]">{selectedTime ? selectedTime.slice(0, 5) : "—"}</span></div>
+                <div className="flex justify-between gap-4"><span className="text-[#82766E]">Duration</span><span className="text-[#35231E]">{selectedService ? `${selectedService.duration_minutes} min` : "—"}</span></div>
+                <div className="flex justify-between gap-4 border-t border-[#DDD5CC] pt-5 font-semibold"><span className="text-[#82766E]">Total</span><span className="text-[#35231E]">{selectedService ? kes(selectedService.price) : "—"}</span></div>
+              </div>
+              <p className="mt-8 text-center text-xs text-[#82766E]">No payment is taken until your visit.</p>
             </aside>
           </form>
         </section>
