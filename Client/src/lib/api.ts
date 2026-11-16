@@ -1,6 +1,9 @@
 import { supabase } from "./supabase";
 
-const apiBase = import.meta.env.VITE_API_URL ?? "http://localhost:5000/api";
+// VITE_API_URL is the server address, e.g. http://localhost:5000 (as in .env.example).
+// A trailing /api is also accepted, so both formats work. /api is added here.
+const serverUrl = (import.meta.env.VITE_API_URL ?? "http://localhost:5000").replace(/\/+$/, "").replace(/\/api$/, "");
+const apiBase = `${serverUrl}/api`;
 
 export async function api<T>(path: string, options: RequestInit = {}): Promise<T> {
   const { data } = await supabase.auth.getSession();

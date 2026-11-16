@@ -16,6 +16,7 @@ import { requireAdmin } from "./middleware/requireAdmin.js";
 import { requireStaff } from "./middleware/requireStaff.js";
 
 import { writeAuditLog } from "./utils/auditLog.js";
+import adminReportsRouter from "./routes/adminReports.js";
 
 
 
@@ -404,7 +405,7 @@ app.post("/api/admin/staff", requireAuth, requireAdmin, async (req, res) => {
 
     if (existing) return res.status(409).json({ error: "An account with this email already exists" });
 
-    const { data: invite, error: inviteError } = await supabaseAdmin.auth.admin.inviteUserByEmail(normalized, { data: { full_name: fullName.trim() }, redirectTo: "http://localhost:5173/auth/callback" });
+    const { data: invite, error: inviteError } = await supabaseAdmin.auth.admin.inviteUserByEmail(normalized, { data: { full_name: fullName.trim() }, redirectTo: "http://localhost:5173/auth/set-password" });
 
     if (inviteError || !invite.user) return res.status(400).json({ error: inviteError?.message ?? "Unable to invite staff" });
 
@@ -497,6 +498,9 @@ app.get("/api/staff/dashboard", requireAuth, requireStaff, async (req, res) => {
 app.patch("/api/staff/appointments/:id", requireAuth, requireStaff, async (req, res) => { const { status, paymentStatus } = req.body ?? {}; if ((status !== undefined && !["checked_in", "completed", "no_show"].includes(status)) || (paymentStatus !== undefined && !["paid", "unpaid"].includes(paymentStatus))) return res.status(400).json({ error: "This update is not allowed" }); const update: Record<string, unknown> = {}; if (status !== undefined) update.status = status; if (paymentStatus !== undefined) update.payment_status = paymentStatus; if (!Object.keys(update).length) return res.status(400).json({ error: "Provide an appointment change" }); const { data: previous, error: previousError } = await supabaseAdmin.from("appointments").select(appointmentFields).eq("appointment_id", req.params.id).eq("staff_id", res.locals.staff.staff_id).maybeSingle(); if (previousError) return res.status(500).json({ error: "Unable to load appointment" }); if (!previous) return res.status(404).json({ error: "Appointment not found" }); const { data, error } = await supabaseAdmin.from("appointments").update(update).eq("appointment_id", req.params.id).eq("staff_id", res.locals.staff.staff_id).select(appointmentFields).maybeSingle(); if (error) return res.status(500).json({ error: "Unable to update appointment" }); if (!data) return res.status(404).json({ error: "Appointment not found" }); await writeAuditLog({ actorUserId: res.locals.user.id, action: "UPDATE_APPOINTMENT", entityType: "appointments", entityId: String(data.appointment_id), oldData: appointmentAuditData(previous as Record<string, unknown>), newData: appointmentAuditData(data as Record<string, unknown>) }); res.json({ appointment: (await decorate([data as Record<string, unknown>]))[0] }); });
 
 
+
+// Reports and audit trail (admin only) — see routes/adminReports.ts
+app.use("/api/admin", adminReportsRouter);
 
 app.use((_req, res) => res.status(404).json({ success: false, message: "API endpoint not found." }));
 

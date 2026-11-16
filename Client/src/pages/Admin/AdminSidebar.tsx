@@ -9,6 +9,9 @@ const menuItems = [
   { number: "03", label: "Team", path: "/admin/team" },
   { number: "04", label: "Services & pricing", path: "/admin/services" },
   { number: "05", label: "Settings", path: "/admin/settings" },
+  { number: "06", label: "Reports", path: "/admin/reports" },
+  { number: "07", label: "Audit trail", path: "/admin/audit-logs" },
+  { number: "08", label: "Help", path: "/help" },
 ];
 
 const AdminSidebar = () => {

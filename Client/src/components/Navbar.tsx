@@ -68,6 +68,10 @@ function Navbar() {
             Our studio
           </Link>
 
+          <Link to="/help" className="transition">
+            Help
+          </Link>
+
           <span
             className={`h-6 w-px ${
               hasScrolled ? "bg-[#6B5145]" : "bg-[#DDD5CC]"
@@ -126,6 +130,10 @@ function Navbar() {
 
             <Link to="/#studio" onClick={closeMenu}>
               Our studio
+            </Link>
+
+            <Link to="/help" onClick={closeMenu}>
+              Help
             </Link>
 
             <Link to="/team/login" onClick={closeMenu}>
