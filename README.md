@@ -58,7 +58,8 @@ Server/                 API used by the website
   src/routes/           Reports and audit trail endpoints
   src/middleware/       Sign-in and role checks (requireAuth, requireAdmin, requireStaff)
   src/utils/auditLog.ts Writes audit trail entries
-  database/schema.sql   SQL for the appointments and salon settings tables
+  database/schema.sql   Full database schema (all tables, keys, rules, RLS, trigger)
+  database/002_improvements.sql  Security and data-quality fixes to run after schema.sql
 ```
 
 ## Installation
@@ -108,7 +109,7 @@ VITE_API_URL=http://localhost:5000         # the server address, same port as PO
 
 ### 4. Prepare Supabase (once per project)
 
-1. **SQL Editor:** run `Server/database/schema.sql` to create the `appointments` and `salon_settings` tables.
+1. **SQL Editor:** run `Server/database/schema.sql` (creates all 8 tables, keys, rules, indexes, security policies and the sign-up trigger), then run `Server/database/002_improvements.sql` (security and data-quality fixes).
 2. **Authentication → URL Configuration:** set **Site URL** to `http://localhost:5173` and add `http://localhost:5173/**` to **Redirect URLs**, so email links (confirmation, invitations, password reset) open the right pages.
 3. **First admin:** sign up through the website, then in **Table Editor → `users`** set that account's `role` to `admin`.
 
@@ -166,6 +167,8 @@ The same guidance is available inside the app at **`/help`**.
 - **Access levels** are checked twice: the website hides pages by role, and the server checks the signed-in user's token and role (`requireAuth`, `requireAdmin`, `requireStaff`) on every protected request.
 - **SQL injection:** the server never builds SQL from text. All database access goes through the Supabase client, which sends values separately from queries (parameterised).
 - **Secret key** (`SUPABASE_SECRET_KEY`) stays on the server only; the website uses the publishable key.
+- **Row level security** is on for every table. Signed-in users can read only their own profile and may change only their own name and phone, never their role (`002_improvements.sql`).
+- **Database rules** reject invalid data (unknown statuses, negative prices, bookings that end before they start) and a unique index prevents double-booking the same professional at the same time.
 - **Rate limiting** on the email check slows down automated attempts.
 - **Audit trail** records every change to bookings, staff, services and settings, with passwords and tokens stripped from the stored data.
 
