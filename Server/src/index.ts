@@ -404,7 +404,7 @@ app.post("/api/admin/staff", requireAuth, requireAdmin, async (req, res) => {
 
     if (existing) return res.status(409).json({ error: "An account with this email already exists" });
 
-    const { data: invite, error: inviteError } = await supabaseAdmin.auth.admin.inviteUserByEmail(normalized, { data: { full_name: fullName.trim() }, redirectTo: "http://localhost:5173/auth/callback" });
+    const { data: invite, error: inviteError } = await supabaseAdmin.auth.admin.inviteUserByEmail(normalized, { data: { full_name: fullName.trim() }, redirectTo: "http://localhost:5173/auth/set-password" });
 
     if (inviteError || !invite.user) return res.status(400).json({ error: inviteError?.message ?? "Unable to invite staff" });
 

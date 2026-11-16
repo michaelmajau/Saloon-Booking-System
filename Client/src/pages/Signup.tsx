@@ -3,7 +3,7 @@ import { useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 import { supabase } from "../lib/supabase";
-import SignupImage from "../assets/signup1.avif";
+import SignupImage from "../assets/Signup1.avif";
 
 const API_URL =
   import.meta.env.VITE_API_URL || "http://localhost:5000";
