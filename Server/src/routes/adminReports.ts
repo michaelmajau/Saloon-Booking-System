@@ -33,13 +33,34 @@ function checkRange(from: unknown, to: unknown): string | null {
   return null;
 }
 
-/** Full names for a list of account IDs, as a Map of user_id -> full_name. */
+/**
+ * Display names for a list of account IDs, as a Map of user_id -> name.
+ * Uses users.full_name, then users.email. For accounts with no usable row in
+ * `users`, falls back to the sign-up name or email stored in Supabase Auth.
+ */
 async function namesFor(userIds: string[]): Promise<Map<string, string>> {
-  const ids = [...new Set(userIds.filter(Boolean))];
-  if (!ids.length) return new Map();
-  const { data, error } = await supabaseAdmin.from("users").select("user_id, full_name").in("user_id", ids);
+  const ids = [...new Set(userIds.filter((id) => id && id !== "null" && id !== "undefined"))];
+  const names = new Map<string, string>();
+  if (!ids.length) return names;
+
+  const { data, error } = await supabaseAdmin.from("users").select("user_id, full_name, email").in("user_id", ids);
   if (error) throw error;
-  return new Map((data ?? []).map((u) => [String(u.user_id), String(u.full_name ?? "")]));
+  for (const u of data ?? []) {
+    const name = String(u.full_name ?? "").trim() || String(u.email ?? "").trim();
+    if (name) names.set(String(u.user_id), name);
+  }
+
+  // Look up the rest in Supabase Auth (capped so a large report stays fast).
+  const missing = ids.filter((id) => !names.has(id)).slice(0, 50);
+  await Promise.all(
+    missing.map(async (id) => {
+      const { data: auth } = await supabaseAdmin.auth.admin.getUserById(id);
+      const meta = (auth?.user?.user_metadata ?? {}) as Record<string, unknown>;
+      const name = String(meta.full_name ?? meta.name ?? "").trim() || String(auth?.user?.email ?? "").trim();
+      if (name) names.set(id, name);
+    }),
+  );
+  return names;
 }
 
 // ---------------------------------------------------------------------------
