@@ -13,6 +13,9 @@
 -- Money is stored in Kenyan shillings (KES). Times use the salon's local time.
 -- =============================================================================
 
+-- Needed for the "no overlapping bookings" rule on appointments (section 6).
+create extension if not exists btree_gist;
+
 
 -- -----------------------------------------------------------------------------
 -- Entity relationships (one → many unless stated)
@@ -124,7 +127,12 @@ create table if not exists public.appointments (
   constraint appointments_pkey             primary key (appointment_id),
   constraint appointments_customer_id_fkey foreign key (customer_id) references public.users (user_id),
   constraint appointments_staff_id_fkey    foreign key (staff_id)    references public.staff (staff_id),
-  constraint appointments_service_id_fkey  foreign key (service_id)  references public.services (service_id)
+  constraint appointments_service_id_fkey  foreign key (service_id)  references public.services (service_id),
+  -- No double-booking: a staff member's active bookings may not overlap in time.
+  constraint no_double_booking exclude using gist (
+    staff_id with =,
+    tsrange(appointment_date + start_time, appointment_date + end_time) with &&
+  ) where (status in ('pending', 'confirmed', 'checked_in', 'completed'))
 );
 
 -- Fast look-ups of a staff member's day, and of a whole day.
@@ -133,7 +141,7 @@ create index if not exists appointments_staff_day_idx
 create index if not exists appointments_day_idx
   on public.appointments using btree (appointment_date, start_time);
 
--- Prevents double-booking: one active booking per staff member per start time.
+-- Also blocks two active bookings with the same staff member and start time.
 create unique index if not exists appointments_staff_start_active_idx
   on public.appointments using btree (staff_id, appointment_date, start_time)
   where status not in ('cancelled', 'no_show');
