@@ -32,6 +32,7 @@ const ACTION_LABELS: Record<string, string> = {
   UPDATE_SERVICE: "Updated a service",
   DELETE_SERVICE: "Deleted a service",
   UPDATE_SALON_SETTINGS: "Changed salon settings",
+  CANCEL_APPOINTMENT: "Cancelled a booking",
 };
 
 const actionLabel = (action: string) =>

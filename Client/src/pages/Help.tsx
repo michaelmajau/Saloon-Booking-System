@@ -34,7 +34,7 @@ const SECTIONS: Section[] = [
       },
       {
         q: "How do I change or cancel a booking?",
-        a: "Please contact the salon directly. The salon team can update or cancel your booking for you.",
+        a: "On your dashboard, click Cancel appointment on your upcoming booking. You can cancel a pending or confirmed booking up to 2 hours before it starts. To change a booking, cancel it and book a new time. Closer to the time, please contact the salon.",
       },
       {
         q: "A time I wanted is no longer there.",
@@ -140,6 +140,8 @@ const MESSAGES: [string, string][] = [
   ["Please select the … workspace", "On the Team portal, pick the workspace named in the message (Admin, Barber or Stylist)."],
   ["This portal is only available to salon team members", "Customer accounts can't use the Team portal. Sign in from the main sign-in page instead."],
   ["Your staff account is inactive. Contact your administrator.", "An admin has deactivated your account. Ask them to reactivate it from the Team page."],
+  ["Appointments can only be cancelled at least 2 hours before they start", "It's too close to your appointment to cancel online. Please contact the salon directly."],
+  ["Only pending or confirmed appointments can be cancelled", "This booking has already been checked in, completed or cancelled, so it can't be cancelled."],
   ["This email is already registered", "You already have an account. Sign in, or use “Forgot password?”."],
   ["Unable to check email availability", "The server isn't reachable. Make sure it's running, then try again."],
   ["This time is no longer available. Please choose another slot.", "Someone booked that time just before you. Pick another free time."],
