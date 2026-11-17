@@ -232,11 +232,49 @@ function AppointmentList({
   rows: Appointment[];
   save: SaveAction;
 }) {
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+
+  // Keep only the rows that match the search text and the chosen status
+  const q = search.trim().toLowerCase();
+  const visibleRows = rows.filter(
+    (a) =>
+      (statusFilter === "all" || a.status === statusFilter) &&
+      (!q ||
+        [a.customer?.full_name, a.service?.service_name, a.staff?.full_name].some(
+          (v) => v?.toLowerCase().includes(q)
+        ))
+  );
+
   return (
     <div className="overflow-x-auto bg-[#FFFCF8] p-5 sm:p-8">
-      <p className="mb-5 text-sm text-[#82766E]">
-        {rows.length} bookings · values shown in KSh
-      </p>
+      <div className="mb-5 flex flex-wrap items-center gap-3">
+        <input
+          type="search"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search client, service or staff"
+          className="w-full max-w-xs border border-[#DDD2C6] bg-white px-3 py-2 text-sm"
+        />
+
+        <select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+          className="border border-[#DDD2C6] bg-white px-3 py-2 text-sm"
+        >
+          <option value="all">All statuses</option>
+          <option value="pending">Pending</option>
+          <option value="confirmed">Confirmed</option>
+          <option value="checked_in">Checked in</option>
+          <option value="completed">Completed</option>
+          <option value="cancelled">Cancelled</option>
+          <option value="no_show">No-show</option>
+        </select>
+
+        <p className="text-sm text-[#82766E]">
+          {visibleRows.length} of {rows.length} bookings · values shown in KSh
+        </p>
+      </div>
 
       <table className="min-w-full text-left text-sm">
         <thead className="border-b border-[#e7ded3] text-xs uppercase tracking-wider text-[#82766E]">
@@ -250,7 +288,7 @@ function AppointmentList({
         </thead>
 
         <tbody>
-          {rows.map((appointment) => (
+          {visibleRows.map((appointment) => (
             <tr
               key={appointment.appointment_id}
               className="border-b border-[#eee7df]"

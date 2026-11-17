@@ -19,6 +19,8 @@ import { requireAdmin } from "./middleware/requireAdmin.js";
 import { requireStaff } from "./middleware/requireStaff.js";
 
 import { writeAuditLog } from "./utils/auditLog.js";
+import adminReportsRouter from "./routes/adminReports.js";
+import helmet from "helmet";
 
 dotenv.config();
 
@@ -73,6 +75,8 @@ app.use(
 );
 
 app.use(express.json());
+
+
 
 type DecoratedAppointment = Record<string, unknown> & { customer: Record<string, unknown> | null; staff: Record<string, unknown> | null; service: Record<string, unknown> | null };
 
@@ -361,44 +365,19 @@ app.post("/api/customer/appointments", requireAuth, async (req, res) => {
       customer_id: res.locals.user.id, staff_id: staffId, service_id: serviceId,
 
       appointment_date: appointmentDate, start_time: normalizedTime, end_time: endTime,
-
-      total_amount: service.price, status: "confirmed", payment_status: "unpaid",
-
+      total_amount: service.price, status: "pending", payment_status: "unpaid",
     }).select(appointmentFields).single();
+    // 23P01 = the database blocked an overlapping booking (someone else got the slot first)
+    if (error?.code === "23P01")
+      return res.status(409).json({ error: "Sorry, that time was just taken. Please choose another slot." });
     if (error) throw error;
-
-// Record the appointment in audit logs
-try {
-  await writeAuditLog({
-    actorUserId: res.locals.user.id,
-    action: "CREATE_APPOINTMENT",
-    entityType: "appointments",
-    entityId: String(data.appointment_id),
-    newData: appointmentAuditData(data as Record<string, unknown>),
-  });
-} catch (auditError) {
-  console.error("Booking audit failed:", auditError);
-}
-
-// Automatically synchronize the confirmed booking with Google Calendar
-await trySyncAppointmentToGoogle(
-  String(data.appointment_id)
-);
-
-// Return the confirmed appointment to the frontend
-return res.status(201).json({
-  appointment: (await decorate([data as Record<string, unknown>]))[0],
-});
-
-    
-
-  } catch (error) {
-    console.error("Create booking:", error);
-
-    return res.status(500).json({
-      error: "Unable to create appointment",
-    });
-  }
+    try {
+      await writeAuditLog({ actorUserId: res.locals.user.id, action: "CREATE_APPOINTMENT",
+        entityType: "appointments", entityId: String(data.appointment_id),
+        newData: appointmentAuditData(data as Record<string, unknown>) });
+    } catch (auditError) { console.error("Booking audit failed:", auditError); }
+    res.status(201).json({ appointment: (await decorate([data as Record<string, unknown>]))[0] });
+  } catch (error) { console.error("Create booking:", error); res.status(500).json({ error: "Unable to create appointment" }); }
 });
 
 // Google Calendar sync: confirmed bookings only. Never fail the booking if Google fails.
@@ -703,7 +682,7 @@ app.post("/api/admin/staff", requireAuth, requireAdmin, async (req, res) => {
 
     if (existing) return res.status(409).json({ error: "An account with this email already exists" });
 
-    const { data: invite, error: inviteError } = await supabaseAdmin.auth.admin.inviteUserByEmail(normalized, { data: { full_name: fullName.trim() }, redirectTo: "http://localhost:5173/auth/callback" });
+    const { data: invite, error: inviteError } = await supabaseAdmin.auth.admin.inviteUserByEmail(normalized, { data: { full_name: fullName.trim() }, redirectTo: "http://localhost:5173/auth/set-password" });
 
     if (inviteError || !invite.user) return res.status(400).json({ error: inviteError?.message ?? "Unable to invite staff" });
 
@@ -976,6 +955,46 @@ app.delete("/api/google/disconnect", requireAuth, async (_req, res) => {
 
 });
 
-app.use((_req, res) => res.status(404).json({ success: false, message: "API endpoint not found." }));
+// Reports and audit trail (admin only) — see routes/adminReports.ts
+app.use("/api/admin", adminReportsRouter);
+
+// Customer cancels one of their own appointments (at least 2 hours before it starts)
+app.patch("/api/customer/appointments/:id/cancel", requireAuth, async (req, res) => {
+  try {
+    const customerId = res.locals.user.id;
+    // The customer_id filter means customers can only ever touch their own bookings
+    const { data: previous, error: loadError } = await supabaseAdmin.from("appointments").select(appointmentFields)
+      .eq("appointment_id", req.params.id).eq("customer_id", customerId).maybeSingle();
+    if (loadError) throw loadError;
+    if (!previous) return res.status(404).json({ error: "Appointment not found" });
+    if (!["pending", "confirmed"].includes(String(previous.status)))
+      return res.status(409).json({ error: "Only pending or confirmed appointments can be cancelled" });
+
+    const startsAt = new Date(`${previous.appointment_date}T${previous.start_time}+03:00`); // Nairobi time
+    if (startsAt.getTime() - Date.now() < 2 * 60 * 60 * 1000)
+      return res.status(409).json({ error: "Appointments can only be cancelled at least 2 hours before they start. Please contact the salon." });
+
+    const { data, error } = await supabaseAdmin.from("appointments").update({ status: "cancelled" })
+      .eq("appointment_id", req.params.id).eq("customer_id", customerId).in("status", ["pending", "confirmed"])
+      .select(appointmentFields).maybeSingle();
+    if (error) throw error;
+    if (!data) return res.status(409).json({ error: "This appointment can no longer be cancelled" });
+
+    try {
+      await writeAuditLog({ actorUserId: customerId, action: "CANCEL_APPOINTMENT", entityType: "appointments",
+        entityId: String(data.appointment_id), oldData: appointmentAuditData(previous as Record<string, unknown>),
+        newData: appointmentAuditData(data as Record<string, unknown>) });
+    } catch (auditError) { console.error("Cancel audit failed:", auditError); }
+    res.json({ appointment: (await decorate([data as Record<string, unknown>]))[0] });
+  } catch (error) { console.error("Cancel booking:", error); res.status(500).json({ error: "Unable to cancel appointment" }); }
+});
+
+app.use((req, res) => {
+  console.warn(`404 ${req.method} ${req.originalUrl}`);
+  res.status(404).json({ success: false, message: "API endpoint not found." });
+});
 
 app.listen(PORT, () => console.log(`Bookify API running on http://localhost:${PORT}`));
+
+//Helmet adds protective HTTP headers to every response from your server. They tell the browser to refuse things like having your site loaded inside another site’s frame (clickjacking) and guessing file types, and they hide the fact that the server runs Express. The rate limit under it caps each person at 300 API calls per 15 minutes, which slows brute-force attempts and spam bookings. In your presentation you can describe these as application-level security measures.
+//Double bookings are prevented at the database level with an exclusion constraint, so even simultaneous requests can’t create overlaps.”

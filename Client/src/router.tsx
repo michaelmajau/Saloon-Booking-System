@@ -18,6 +18,9 @@ import StaffDashboard from "./pages/StaffDashboard";
 import SetStaffPassword from "./pages/SetStaffPassword";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
+import Help from "./pages/Help";
+import Reports from "./pages/Admin/Reports";
+import AuditLogs from "./pages/Admin/AuditLogs";
 
 const router = createBrowserRouter([
   // PUBLIC AND CUSTOMER ROUTES
@@ -70,6 +73,10 @@ const router = createBrowserRouter([
         path: "reset-password",
         element: <ResetPassword />,
       },
+      {
+        path: "help",
+        element: <Help />,
+      },
 
 
       // Customer dashboard
@@ -107,6 +114,8 @@ const router = createBrowserRouter([
           { path: "team", element: <AdminOperations mode="team" /> },
           { path: "services", element: <AdminOperations mode="services" /> },
           { path: "settings", element: <AdminOperations mode="settings" /> },
+          { path: "reports", element: <Reports /> },
+          { path: "audit-logs", element: <AuditLogs /> },
         ],
       },
     ],

@@ -1,4 +1,5 @@
-import { FormEvent, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
+import type { FormEvent } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import { api, kes } from "../lib/api";
@@ -76,6 +77,8 @@ function Dashboard() {
   const [pageError, setPageError] = useState("");
   const [bookingError, setBookingError] = useState("");
   const [bookingSuccess, setBookingSuccess] = useState("");
+  const [cancellingId, setCancellingId] = useState("");
+  const [cancelNotice, setCancelNotice] = useState("");
 
   const navigate = useNavigate();
 
@@ -120,6 +123,7 @@ const connectGoogleCalendar = async () => {
       "http://localhost:5000/api/google/connect",
       {
         method: "POST",
+        credentials: "include",
         headers: {
           Authorization: `Bearer ${session.access_token}`,
         },
@@ -184,6 +188,29 @@ const disconnectGoogleCalendar = async () => {
       );
     }
   };
+  
+  // Cancel the customer's own upcoming appointment
+  const cancelAppointment = async (appointmentId: string) => {
+    if (!window.confirm("Cancel this appointment? This cannot be undone.")) return;
+
+       setCancellingId(appointmentId);
+    setPageError("");
+    setCancelNotice("");
+
+    try {
+      await api(`/customer/appointments/${appointmentId}/cancel`, { method: "PATCH" });
+      setCancelNotice("Your appointment has been cancelled.");
+      await loadDashboard();
+
+    } catch (error) {
+      setPageError(
+        error instanceof Error ? error.message : "Unable to cancel appointment."
+      );
+    } finally {
+      setCancellingId("");
+    }
+  };
+
 
   useEffect(() => {
     let active = true;
@@ -484,6 +511,11 @@ const disconnectGoogleCalendar = async () => {
           <p className="text-sm font-semibold uppercase tracking-[0.25em] text-[#70263E]">
             Upcoming
           </p>
+                    {cancelNotice && (
+            <p role="status" className="mt-4 border border-green-200 bg-green-50 p-4 text-sm text-green-800">
+              {cancelNotice}
+            </p>
+          )}
 
       <div className="flex items-center gap-3">
         {calendarLoading ? (
@@ -532,9 +564,23 @@ const disconnectGoogleCalendar = async () => {
                 </p>
               </div>
 
+                            <div className="flex flex-wrap items-center gap-3">
               <span className="w-fit rounded-full bg-[#EEE5D7] px-4 py-2 text-sm font-semibold text-[#70263E]">
                 {dashboard.upcoming.status.replace("_", " ")}
               </span>
+
+                {["pending", "confirmed"].includes(dashboard.upcoming.status) && (
+                  <button
+                    type="button"
+                    onClick={() => void cancelAppointment(dashboard.upcoming!.appointment_id)}
+                    disabled={cancellingId === dashboard.upcoming.appointment_id}
+                    className="border border-[#70263E] px-4 py-2 text-sm font-semibold text-[#70263E] hover:bg-[#F2E1E1] disabled:opacity-60"
+                  >
+                    {cancellingId === dashboard.upcoming.appointment_id ? "Cancelling…" : "Cancel appointment"}
+                  </button>
+                )}
+              </div>
+
             </div>
           ) : (
             <div className="mt-5 flex flex-col gap-6 border-t border-[#DDD5CC] pt-7 md:flex-row md:items-center md:justify-between">
