@@ -2,6 +2,7 @@ import { FormEvent, useEffect, useState } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import { api, kes } from "../lib/api";
+import { Link2, CheckCircle2 } from "lucide-react";
 
 type Service = {
   service_id: string;
@@ -45,6 +46,8 @@ type CustomerDashboard = {
   };
 };
 
+
+
 function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [authenticated, setAuthenticated] = useState(false);
@@ -66,6 +69,9 @@ function Dashboard() {
   const [catalogueLoading, setCatalogueLoading] = useState(true);
   const [slotsLoading, setSlotsLoading] = useState(false);
   const [bookingLoading, setBookingLoading] = useState(false);
+
+  const [calendarConnected, setCalendarConnected] = useState(false);
+  const [calendarLoading, setCalendarLoading] = useState(true);
 
   const [pageError, setPageError] = useState("");
   const [bookingError, setBookingError] = useState("");
@@ -97,6 +103,74 @@ function Dashboard() {
 
     navigate("/sign-in", { replace: true });
   };
+
+
+const connectGoogleCalendar = async () => {
+  try {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+
+    if (!session) {
+      alert("Please sign in first.");
+      return;
+    }
+
+    const response = await fetch(
+      "http://localhost:5000/api/google/connect",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("Failed to start Google Calendar connection");
+    }
+
+    const data = await response.json();
+
+    // Backend returns the Google authorization URL.
+    window.location.assign(data.url);
+  } catch (error) {
+    console.error("Google Calendar connection error:", error);
+    alert("Unable to connect Google Calendar.");
+  }
+};
+
+const disconnectGoogleCalendar = async () => {
+  try {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+
+    if (!session) {
+      return;
+    }
+
+    const response = await fetch(
+      "http://localhost:5000/api/google/disconnect",
+      {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("Failed to disconnect Google Calendar");
+    }
+
+    setCalendarConnected(false);
+    alert("Google Calendar disconnected successfully.");
+  } catch (error) {
+    console.error("Disconnect error:", error);
+    alert("Unable to disconnect Google Calendar.");
+  }
+};
 
   const loadDashboard = async () => {
     try {
@@ -199,6 +273,51 @@ function Dashboard() {
     void loadAvailableSlots();
   }, [selectedService, selectedBarber, bookingDate]);
 
+  useEffect(() => {
+  const checkCalendarConnection = async () => {
+    if (!authenticated) {
+      setCalendarLoading(false);
+      return;
+    }
+    setCalendarLoading(true);
+    try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (!session) {
+        setCalendarConnected(false);
+        return;
+      }
+
+      const response = await fetch(
+        "http://localhost:5000/api/google/status",
+        {
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to check calendar connection");
+      }
+
+      const data = await response.json();
+
+      setCalendarConnected(data.connected === true);
+    } catch (error) {
+      console.error("Calendar status error:", error);
+      setCalendarConnected(false);
+    } finally {
+      setCalendarLoading(false);
+    }
+  };
+
+  void checkCalendarConnection();
+}, [authenticated]);
+
+
   const handleBooking = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
@@ -270,6 +389,9 @@ function Dashboard() {
                 <p className="text-sm font-semibold uppercase tracking-[0.25em] text-[#E6D6B8]">
                   My account
                 </p>
+
+
+            
               </div>
 
               <h1
@@ -358,10 +480,43 @@ function Dashboard() {
 
         {/* Next visit */}
         <section className="mt-14 border-l-4 border-[#B89B77] bg-white p-8 md:p-12">
+          <div className="flex items-center justify-between gap-4 md:flex-row md:items-end">
           <p className="text-sm font-semibold uppercase tracking-[0.25em] text-[#70263E]">
             Upcoming
           </p>
 
+      <div className="flex items-center gap-3">
+        {calendarLoading ? (
+          <span className="text-sm text-gray-500">
+            Checking calendar...
+          </span>
+        ) : calendarConnected ? (
+          <>
+            <span className="flex items-center gap-2 text-green-700 font-medium">
+              <CheckCircle2 size={20} />
+              Google Calendar Connected
+            </span>
+
+            <button
+              type="button"
+              onClick={disconnectGoogleCalendar}
+              className="border border-[#70263E] px-4 py-2 text-[#70263E] hover:bg-[#70263E] hover:text-white transition-colors"
+            >
+              Disconnect
+            </button>
+          </>
+        ) : (
+          <button
+            type="button"
+            onClick={connectGoogleCalendar}
+            className="flex items-center gap-3 bg-[#70263E] px-6 py-3 text-white font-semibold hover:bg-[#592033] transition-colors"
+          >
+            <Link2 size={20} />
+            Connect to Google Calendar
+          </button>
+        )}
+      </div>
+          </div>
           {dashboard?.upcoming ? (
             <div className="mt-5 flex flex-col gap-6 border-t border-[#DDD5CC] pt-7 md:flex-row md:items-center md:justify-between">
               <div>
@@ -448,10 +603,12 @@ function Dashboard() {
                             if (selectedService?.service_id !== service.service_id) {
                               setSelectedBarber(null);
                               setSelectedTime("");
+                              setAvailableSlots([]);
                             }
                             setSelectedService(service);
                             setBookingError("");
                             setBookingSuccess("");
+                            setBookingStep(2);
                           }}
                           className={`min-h-[165px] border p-6 text-left transition ${active ? "border-l-[6px] border-[#70263E] bg-[#F3E4E5]" : "border-[#DDD5CC] bg-white hover:border-[#70263E]"}`}>
                           <h3 className="text-xl font-semibold text-[#35231E]">{service.service_name}</h3>
@@ -473,7 +630,7 @@ function Dashboard() {
                       const active = selectedBarber?.staff_id === barber.staff_id;
                       return (
                         <button key={barber.staff_id} type="button" aria-pressed={active}
-                          onClick={() => { setSelectedBarber(barber); setSelectedTime(""); setBookingError(""); }}
+                          onClick={() => { setSelectedBarber(barber); setSelectedTime(""); setBookingError(""); setBookingStep(3); }}
                           className={`flex items-center gap-4 border p-6 text-left transition ${active ? "border-l-[6px] border-[#70263E] bg-[#F3E4E5]" : "border-[#DDD5CC] bg-white hover:border-[#70263E]"}`}>
                           <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-[#35231E] text-sm font-semibold text-white">{barber.full_name.split(" ").map((n) => n[0]).slice(0, 2).join("")}</span>
                           <span><span className="block font-semibold text-[#35231E]">{barber.full_name}</span><span className="mt-1 block text-sm capitalize text-[#82766E]">{barber.staff_type}{barber.specialty ? ` · ${barber.specialty}` : ""}</span></span>
@@ -512,13 +669,11 @@ function Dashboard() {
                 {bookingStep > 1 ? (
                   <button type="button" onClick={() => setBookingStep((bookingStep - 1) as 1 | 2)} className="border border-[#D7CABC] px-6 py-3 font-semibold text-[#35231E] hover:bg-white">← Back</button>
                 ) : <span />}
-                {bookingStep < 3 ? (
-                  <button type="button" disabled={bookingStep === 1 ? !selectedService : !selectedBarber}
-                    onClick={() => setBookingStep((bookingStep + 1) as 2 | 3)}
-                    className="bg-[#70263E] px-8 py-4 font-semibold text-white transition hover:bg-[#5C1E32] disabled:cursor-not-allowed disabled:opacity-40">Continue →</button>
-                ) : (
+                {bookingStep === 3 ? (
                   <button type="submit" disabled={bookingLoading || !selectedService || !selectedBarber || !selectedTime}
                     className="bg-[#70263E] px-8 py-4 font-semibold text-white transition hover:bg-[#5C1E32] disabled:cursor-not-allowed disabled:opacity-40">{bookingLoading ? "Confirming…" : "Confirm appointment →"}</button>
+                ) : (
+                  <span className="text-sm text-[#82766E]">Select an option to continue automatically →</span>
                 )}
               </div>
             </div>
