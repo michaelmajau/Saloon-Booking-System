@@ -148,7 +148,7 @@ The same guidance is available inside the app at **`/help`**.
 
 1. **Get access:** the admin invites you by email. Open the invitation and set your password. If you weren't asked to set one, use **Team portal → Forgot password?**.
 2. **Sign in:** **Team portal**, choose **Barber** or **Stylist**, enter your email and password.
-3. **Run your day:** your dashboard lists today's appointments. Use **Check in** when the client arrives, **Complete & paid** when finished, or **No-show**.
+3. **Run your day:** your dashboard lists today's appointments; use **Previous**, **Next** or the date box to see other days. Use **Confirm** on a new (pending) booking, **Check in** when the client arrives, **Complete & paid** when finished, or **No-show**.
 
 ### Administrators
 
