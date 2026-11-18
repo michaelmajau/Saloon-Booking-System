@@ -549,59 +549,64 @@ const disconnectGoogleCalendar = async () => {
         )}
       </div>
           </div>
-          {dashboard?.upcoming ? (
-            <div className="mt-5 flex flex-col gap-6 border-t border-[#DDD5CC] pt-7 md:flex-row md:items-center md:justify-between">
-              <div>
-                <h2 style={serifStyle} className="text-4xl text-[#35231E]">
-                  {dashboard.upcoming.service?.service_name ?? "Appointment"}
-                </h2>
+          {(() => {
+            const nowNairobi = new Intl.DateTimeFormat("en-GB", {
+              timeZone: "Africa/Nairobi", year: "numeric", month: "2-digit",
+              day: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false,
+            }).formatToParts(new Date());
+            const part = (type: string) => nowNairobi.find((p) => p.type === type)?.value ?? "00";
+            const currentNairobi = `${part("year")}-${part("month")}-${part("day")}T${part("hour")}:${part("minute")}`;
+            const upcomingAppointments = (dashboard?.appointments ?? [])
+              .filter((appointment) =>
+                ["pending", "confirmed", "checked_in"].includes(appointment.status) &&
+                `${appointment.appointment_date}T${appointment.start_time.slice(0, 5)}` >= currentNairobi
+              )
+              .sort((a, b) =>
+                `${a.appointment_date}T${a.start_time}`.localeCompare(`${b.appointment_date}T${b.start_time}`)
+              );
 
-                <p className="mt-3 text-[#82766E]">
-                  {formatDate(dashboard.upcoming.appointment_date)} ·{" "}
-                  {dashboard.upcoming.start_time.slice(0, 5)} ·{" "}
-                  {dashboard.upcoming.staff?.full_name ?? "Salon team"} ·{" "}
-                  {dashboard.upcoming.service?.duration_minutes ?? "—"} min
-                </p>
+            return upcomingAppointments.length > 0 ? (
+              <div className="mt-5 divide-y divide-[#DDD5CC] border-t border-[#DDD5CC]">
+                {upcomingAppointments.map((appointment) => (
+                  <div key={appointment.appointment_id} className="flex flex-col gap-6 py-7 md:flex-row md:items-center md:justify-between">
+                    <div>
+                      <h2 style={serifStyle} className="text-4xl text-[#35231E]">
+                        {appointment.service?.service_name ?? "Appointment"}
+                      </h2>
+                      <p className="mt-3 text-[#82766E]">
+                        {formatDate(appointment.appointment_date)} · {appointment.start_time.slice(0, 5)} · {appointment.staff?.full_name ?? "Salon team"} · {appointment.service?.duration_minutes ?? "—"} min
+                      </p>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-3">
+                      <span className="w-fit rounded-full bg-[#EEE5D7] px-4 py-2 text-sm font-semibold text-[#70263E]">
+                        {appointment.status.replace("_", " ")}
+                      </span>
+                      {["pending", "confirmed"].includes(appointment.status) && (
+                        <button
+                          type="button"
+                          onClick={() => void cancelAppointment(appointment.appointment_id)}
+                          disabled={cancellingId === appointment.appointment_id}
+                          className="border border-[#70263E] px-4 py-2 text-sm font-semibold text-[#70263E] hover:bg-[#F2E1E1] disabled:opacity-60"
+                        >
+                          {cancellingId === appointment.appointment_id ? "Cancelling…" : "Cancel appointment"}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))}
               </div>
-
-                            <div className="flex flex-wrap items-center gap-3">
-              <span className="w-fit rounded-full bg-[#EEE5D7] px-4 py-2 text-sm font-semibold text-[#70263E]">
-                {dashboard.upcoming.status.replace("_", " ")}
-              </span>
-
-                {["pending", "confirmed"].includes(dashboard.upcoming.status) && (
-                  <button
-                    type="button"
-                    onClick={() => void cancelAppointment(dashboard.upcoming!.appointment_id)}
-                    disabled={cancellingId === dashboard.upcoming.appointment_id}
-                    className="border border-[#70263E] px-4 py-2 text-sm font-semibold text-[#70263E] hover:bg-[#F2E1E1] disabled:opacity-60"
-                  >
-                    {cancellingId === dashboard.upcoming.appointment_id ? "Cancelling…" : "Cancel appointment"}
-                  </button>
-                )}
+            ) : (
+              <div className="mt-5 flex flex-col gap-6 border-t border-[#DDD5CC] pt-7 md:flex-row md:items-center md:justify-between">
+                <div>
+                  <h2 style={serifStyle} className="text-4xl text-[#35231E]">Your next visit</h2>
+                  <p className="mt-3 text-[#82766E]">You do not have an upcoming appointment.</p>
+                </div>
+                <a href="#book-appointment" className="w-fit bg-[#70263E] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#5C1E32]">
+                  Book an appointment
+                </a>
               </div>
-
-            </div>
-          ) : (
-            <div className="mt-5 flex flex-col gap-6 border-t border-[#DDD5CC] pt-7 md:flex-row md:items-center md:justify-between">
-              <div>
-                <h2 style={serifStyle} className="text-4xl text-[#35231E]">
-                  Your next visit
-                </h2>
-
-                <p className="mt-3 text-[#82766E]">
-                  You do not have an upcoming appointment.
-                </p>
-              </div>
-
-              <a
-                href="#book-appointment"
-                className="w-fit bg-[#70263E] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#5C1E32]"
-              >
-                Book an appointment
-              </a>
-            </div>
-          )}
+            );
+          })()}
         </section>
 
         {/* Guided three-step booking experience */}

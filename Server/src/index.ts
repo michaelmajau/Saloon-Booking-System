@@ -365,8 +365,13 @@ app.post("/api/customer/appointments", requireAuth, async (req, res) => {
       customer_id: res.locals.user.id, staff_id: staffId, service_id: serviceId,
 
       appointment_date: appointmentDate, start_time: normalizedTime, end_time: endTime,
-      total_amount: service.price, status: "pending", payment_status: "unpaid",
+      total_amount: service.price, status: "confirmed", payment_status: "unpaid",
     }).select(appointmentFields).single();
+    console.log("BOOKING INSERT RESULT:", {
+  error: error?.message,
+  appointmentId: data?.appointment_id,
+  status: data?.status,
+});
     // 23P01 = the database blocked an overlapping booking (someone else got the slot first)
     if (error?.code === "23P01")
       return res.status(409).json({ error: "Sorry, that time was just taken. Please choose another slot." });
@@ -376,6 +381,7 @@ app.post("/api/customer/appointments", requireAuth, async (req, res) => {
         entityType: "appointments", entityId: String(data.appointment_id),
         newData: appointmentAuditData(data as Record<string, unknown>) });
     } catch (auditError) { console.error("Booking audit failed:", auditError); }
+    await trySyncAppointmentToGoogle(String(data.appointment_id));
     res.status(201).json({ appointment: (await decorate([data as Record<string, unknown>]))[0] });
   } catch (error) { console.error("Create booking:", error); res.status(500).json({ error: "Unable to create appointment" }); }
 });
@@ -985,6 +991,7 @@ app.patch("/api/customer/appointments/:id/cancel", requireAuth, async (req, res)
         entityId: String(data.appointment_id), oldData: appointmentAuditData(previous as Record<string, unknown>),
         newData: appointmentAuditData(data as Record<string, unknown>) });
     } catch (auditError) { console.error("Cancel audit failed:", auditError); }
+    await trySyncAppointmentToGoogle(String(data.appointment_id));
     res.json({ appointment: (await decorate([data as Record<string, unknown>]))[0] });
   } catch (error) { console.error("Cancel booking:", error); res.status(500).json({ error: "Unable to cancel appointment" }); }
 });
