@@ -4,7 +4,6 @@ import { createCipheriv, createHash, createDecipheriv, randomBytes } from "node:
 
 import { google } from "googleapis";
 
-import cors from "cors";
 
 import dotenv from "dotenv";
 
@@ -50,28 +49,21 @@ const appointmentAuditData = (row: Record<string, unknown>) => ({ appointment_id
 
 const settingsAuditData = (row: Record<string, unknown>) => ({ setting_id: row.setting_id, salon_name: row.salon_name, location: row.location, opening_time: row.opening_time, closing_time: row.closing_time, currency: row.currency });
 
+import cors from "cors";
+
+// Allow both local development and deployed frontend
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://saloon-booking-system-flax.vercel.app",
+];
+
 app.use(
-
   cors({
-
-    origin: [
-
-      "http://localhost:5173",
-
-      "http://127.0.0.1:5173",
-
-      "http://localhost:5174",
-
-    ],
-
-    methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
-
-    allowedHeaders: ["Content-Type", "Authorization"],
-
+    origin: allowedOrigins,
     credentials: true,
-
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
-
 );
 
 app.use(express.json());
