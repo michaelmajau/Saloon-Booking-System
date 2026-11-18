@@ -34,7 +34,7 @@ const SECTIONS: Section[] = [
       },
       {
         q: "How do I change or cancel a booking?",
-        a: "Please contact the salon directly. The salon team can update or cancel your booking for you.",
+        a: "On your dashboard, click Cancel appointment on your upcoming booking. You can cancel a pending or confirmed booking up to 2 hours before it starts. To change a booking, cancel it and book a new time. Closer to the time, please contact the salon.",
       },
       {
         q: "A time I wanted is no longer there.",
@@ -61,11 +61,11 @@ const SECTIONS: Section[] = [
       },
       {
         q: "How do I manage today's appointments?",
-        a: "Your dashboard lists today's bookings with the time, client and service. Use “Check in” when the client arrives, “Complete & paid” when you finish, or “No-show” if they don't come.",
+        a: "Your dashboard lists today's bookings with the time, client and service. Use “Previous”, “Next” or the date box to see other days. Use “Confirm” on a new booking, “Check in” when the client arrives, “Complete & paid” when you finish, or “No-show” if they don't come.",
       },
       {
         q: "Why can't I check in a booking?",
-        a: "The buttons appear once a booking is confirmed. Pending bookings need to be confirmed by an admin first.",
+        a: "Each booking only shows the next step: “Confirm” for a pending booking, then “Check in”, then “Complete & paid”. Cancelled, completed and no-show bookings can't be changed. If a button is missing, refresh the page.",
       },
     ],
   },
@@ -140,6 +140,9 @@ const MESSAGES: [string, string][] = [
   ["Please select the … workspace", "On the Team portal, pick the workspace named in the message (Admin, Barber or Stylist)."],
   ["This portal is only available to salon team members", "Customer accounts can't use the Team portal. Sign in from the main sign-in page instead."],
   ["Your staff account is inactive. Contact your administrator.", "An admin has deactivated your account. Ask them to reactivate it from the Team page."],
+  ["Appointments can only be cancelled at least 2 hours before they start", "It's too close to your appointment to cancel online. Please contact the salon directly."],
+  ["A … appointment can't be changed to …", "The booking changed since you opened the page (for example the client cancelled). Refresh the page to see its current status."],
+  ["Only pending or confirmed appointments can be cancelled", "This booking has already been checked in, completed or cancelled, so it can't be cancelled."],
   ["This email is already registered", "You already have an account. Sign in, or use “Forgot password?”."],
   ["Unable to check email availability", "The server isn't reachable. Make sure it's running, then try again."],
   ["This time is no longer available. Please choose another slot.", "Someone booked that time just before you. Pick another free time."],

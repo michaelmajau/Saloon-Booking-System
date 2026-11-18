@@ -27,7 +27,7 @@ Bookify lets a salon's customers book appointments online, lets barbers and styl
 |---|---|
 | Accounts | Customer registration with email confirmation, sign in, sign out, forgot / reset password |
 | Access levels | Customer, staff (barber or stylist) and admin, checked on both the website and the server |
-| Booking (main transaction) | Three-step booking: service → professional → date & free time. Times are calculated from opening hours and existing bookings, so double-booking is prevented |
+| Booking (main transaction) | Three-step booking: service → professional → date & free time. Times are calculated from opening hours and existing bookings, so double-booking is prevented. Customers can cancel up to 2 hours before |
 | Staff workspace | Today's appointments, booked hours and earnings; check in, complete & paid, no-show |
 | Admin: appointments | Browse all bookings, change status and payment |
 | Admin: team | Invite barbers and stylists by email, activate or deactivate them |
@@ -42,7 +42,7 @@ Bookify lets a salon's customers book appointments online, lets barbers and styl
 | Part | Tools |
 |---|---|
 | Website | React 19, TypeScript, Vite, React Router, Tailwind CSS, Lucide icons |
-| Server (API) | Node.js, Express 5, TypeScript, express-rate-limit |
+| Server (API) | Node.js, Express 5, TypeScript, express-rate-limit, Helmet |
 | Database & login | Supabase (PostgreSQL database, Supabase Auth for accounts and emails) |
 
 ## Project structure
@@ -141,13 +141,14 @@ The same guidance is available inside the app at **`/help`**.
 2. **Sign in:** use **Sign in** with your email and password.
 3. **Book:** on your dashboard, follow the three steps: choose a service, choose a professional, then pick a date and one of the free times and confirm. New bookings show as **Pending** until the salon confirms them.
 4. **See your bookings:** your next appointment and past visits are on your dashboard.
-5. **Forgot your password:** click **Forgot password?** on the sign-in page and follow the emailed link.
+5. **Cancel a booking:** click **Cancel appointment** on your upcoming booking. Pending or confirmed bookings can be cancelled up to 2 hours before they start; after that, contact the salon. To change a booking, cancel it and book a new time.
+6. **Forgot your password:** click **Forgot password?** on the sign-in page and follow the emailed link.
 
 ### Barbers and stylists
 
 1. **Get access:** the admin invites you by email. Open the invitation and set your password. If you weren't asked to set one, use **Team portal → Forgot password?**.
 2. **Sign in:** **Team portal**, choose **Barber** or **Stylist**, enter your email and password.
-3. **Run your day:** your dashboard lists today's appointments. Use **Check in** when the client arrives, **Complete & paid** when finished, or **No-show**.
+3. **Run your day:** your dashboard lists today's appointments; use **Previous**, **Next** or the date box to see other days. Use **Confirm** on a new (pending) booking, **Check in** when the client arrives, **Complete & paid** when finished, or **No-show**.
 
 ### Administrators
 
@@ -168,8 +169,8 @@ The same guidance is available inside the app at **`/help`**.
 - **SQL injection:** the server never builds SQL from text. All database access goes through the Supabase client, which sends values separately from queries (parameterised).
 - **Secret key** (`SUPABASE_SECRET_KEY`) stays on the server only; the website uses the publishable key.
 - **Row level security** is on for every table. Signed-in users can read only their own profile and may change only their own name and phone, never their role (`002_improvements.sql`).
-- **Database rules** reject invalid data (unknown statuses, negative prices, bookings that end before they start) and a unique index prevents double-booking the same professional at the same time.
-- **Rate limiting** on the email check slows down automated attempts.
+- **Database rules** reject invalid data (unknown statuses, negative prices, bookings that end before they start) and a database rule (`no_double_booking`) stops a professional's active bookings from overlapping in time.
+- **Rate limiting** on all API requests (and a stricter limit on the email check) slows down automated attempts; **Helmet** adds secure HTTP headers.
 - **Audit trail** records every change to bookings, staff, services and settings, with passwords and tokens stripped from the stored data.
 
 ## Troubleshooting
