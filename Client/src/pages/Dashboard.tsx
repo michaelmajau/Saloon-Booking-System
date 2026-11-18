@@ -53,6 +53,13 @@ function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [authenticated, setAuthenticated] = useState(false);
   const [fullName, setFullName] = useState("");
+    // Greeting that follows the time of day in Nairobi, using the customer's first name
+  const nairobiHour = Number(
+    new Date().toLocaleString("en-GB", { hour: "numeric", hour12: false, timeZone: "Africa/Nairobi" })
+  );
+  const greeting =
+    nairobiHour < 12 ? "Good morning" : nairobiHour < 17 ? "Good afternoon" : "Good evening";
+    const firstName = fullName.trim().split(" ")[0] || "";
 
   const [services, setServices] = useState<Service[]>([]);
   const [barbers, setBarbers] = useState<Barber[]>([]);
@@ -220,9 +227,21 @@ const disconnectGoogleCalendar = async () => {
 
       if (!active) return;
 
-      if (!error && data.user?.email_confirmed_at) {
+            if (!error && data.user?.email_confirmed_at) {
         setAuthenticated(true);
-        setFullName(data.user.user_metadata?.full_name || "Customer");
+
+        // Prefer the name saved in the users table, then the sign-up data
+        const { data: profile } = await supabase
+          .from("users")
+          .select("full_name")
+          .eq("user_id", data.user.id)
+          .maybeSingle();
+
+        setFullName(
+          profile?.full_name?.trim() ||
+            data.user.user_metadata?.full_name ||
+            ""
+        );
       }
 
       setLoading(false);
@@ -425,7 +444,7 @@ const disconnectGoogleCalendar = async () => {
                 style={serifStyle}
                 className="mt-6 max-w-3xl text-4xl leading-tight text-[#FFFDF8] sm:text-5xl lg:text-4xl"
               >
-                Good morning, {fullName}.
+               {greeting}{firstName ? `, ${firstName}` : ""}.
               </h1>
 
               <p className="mt-4 text-base text-[#E6D6B8]">
