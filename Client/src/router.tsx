@@ -10,11 +10,13 @@ import Dashboard from "./pages/Dashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AdminRoute from "./components/AdminRoute";
 import StaffRoute from "./components/StaffRoute";
+import BarberRoute from "./components/BarberRoute";
 import TeamLogin from "./pages/TeamLogin";
 import AdminLayout from "./pages/Admin/AdminLayout";
 import AdminDashboard from "./pages/Admin/AdminDashboard";
 import AdminOperations from "./pages/Admin/AdminOperations";
 import StaffDashboard from "./pages/StaffDashboard";
+import BarberPage from "./pages/BarberPage";
 import SetStaffPassword from "./pages/SetStaffPassword";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
@@ -97,6 +99,10 @@ const router = createBrowserRouter([
     element: <StaffRoute />,
     children: [
       { path: "dashboard", element: <StaffDashboard /> },
+      {
+        element: <BarberRoute />,
+        children: [{ path: "barber", element: <BarberPage /> }],
+      },
     ],
   },
 

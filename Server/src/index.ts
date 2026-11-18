@@ -27,7 +27,7 @@ const app = express();
 
 const PORT = Number(process.env.PORT) || 5000;
 
-const appointmentFields = "appointment_id, customer_id, staff_id, service_id, appointment_date, start_time, end_time, status, payment_status, total_amount, notes, created_at";
+const appointmentFields = "appointment_id, customer_id, staff_id, service_id, appointment_date, start_time, end_time, status, payment_status, total_amount, tip_amount, notes, created_at";
 
 const activeStatuses = ["pending", "confirmed", "checked_in", "completed"];
 
@@ -753,13 +753,69 @@ app.get("/api/staff/dashboard", requireAuth, requireStaff, async (req, res) => {
     const appointments = await decorate((data ?? []) as Record<string, unknown>[]);
 
     const completedRevenue = appointments.filter((x) => x.status === "completed" && x.payment_status === "paid").reduce((sum, x) => sum + Number(x.total_amount), 0);
+    const weekStart = new Date(`${date}T00:00:00+03:00`); weekStart.setDate(weekStart.getDate() - ((weekStart.getDay() + 6) % 7));
+    const week = weekStart.toLocaleDateString("en-CA", { timeZone: "Africa/Nairobi" });
+    const { data: weeklyTips, error: tipsError } = await supabaseAdmin.from("appointments").select("tip_amount, status, payment_status").eq("staff_id", res.locals.staff.staff_id).gte("appointment_date", week).lte("appointment_date", date);
+    if (tipsError) throw tipsError;
+    const tipsThisWeek = (weeklyTips ?? []).filter((x) => x.status === "completed" && x.payment_status === "paid").reduce((sum, x) => sum + Number(x.tip_amount ?? 0), 0);
 
     const bookedMinutes = appointments.filter((x) => !["cancelled", "no_show"].includes(String(x.status))).reduce((sum, x) => sum + ((Date.parse(`1970-01-01T${String(x.end_time)}`) - Date.parse(`1970-01-01T${String(x.start_time)}`)) / 60000), 0);
 
-    res.json({ date, currency: "KES", staff: res.locals.staff, appointments, metrics: { appointments: appointments.filter((x) => !["cancelled", "no_show"].includes(String(x.status))).length, bookedMinutes, earnings: completedRevenue } });
+    res.json({ date, currency: "KES", staff: res.locals.staff, appointments, metrics: { appointments: appointments.filter((x) => !["cancelled", "no_show"].includes(String(x.status))).length, bookedMinutes, earnings: completedRevenue, tipsThisWeek } });
 
   } catch (error) { console.error(error); res.status(500).json({ error: "Unable to load your schedule" }); }
 
+});
+
+app.get("/api/staff/clients", requireAuth, requireStaff, async (_req, res) => {
+  try {
+    const { data, error } = await supabaseAdmin.from("appointments").select(appointmentFields).eq("staff_id", res.locals.staff.staff_id).order("appointment_date", { ascending: false }).order("start_time", { ascending: false }).limit(300);
+    if (error) throw error;
+    const appointments = await decorate((data ?? []) as Record<string, unknown>[]);
+    const clients = new Map<string, { name: string; appointments: number; lastVisit: string | null; totalSpent: number }>();
+    for (const appointment of appointments) { const id = String(appointment.customer_id); const current = clients.get(id) ?? { name: String((appointment.customer as { full_name?: string } | null)?.full_name ?? "Client"), appointments: 0, lastVisit: null, totalSpent: 0 }; current.appointments += 1; current.lastVisit ??= String(appointment.appointment_date); if (appointment.status === "completed" && appointment.payment_status === "paid") current.totalSpent += Number(appointment.total_amount); clients.set(id, current); }
+    res.json({ clients: [...clients.values()] });
+  } catch (error) { console.error(error); res.status(500).json({ error: "Unable to load clients" }); }
+});
+
+app.get("/api/staff/schedule", requireAuth, requireStaff, async (_req, res) => {
+  try {
+    const [{ data: schedules, error: schedulesError }, { data: salon, error: salonError }] = await Promise.all([supabaseAdmin.from("staff_schedules").select("schedule_id, days_of_week, start_time, end_time").eq("staff_id", res.locals.staff.staff_id).order("days_of_week"), supabaseAdmin.from("salon_settings").select("opening_time, closing_time").limit(1).maybeSingle()]);
+    if (schedulesError || salonError) throw schedulesError ?? salonError;
+    res.json({ schedules: schedules ?? [], salonHours: salon ?? null });
+  } catch (error) { console.error(error); res.status(500).json({ error: "Unable to load your schedule" }); }
+});
+
+app.get("/api/staff/breaks", requireAuth, requireStaff, async (req, res) => {
+  const date = isDate(req.query.date) ? req.query.date : today();
+  const { data, error } = await supabaseAdmin.from("staff_breaks").select("break_id, break_date, start_time, end_time, note").eq("staff_id", res.locals.staff.staff_id).eq("break_date", date).order("start_time");
+  if (error) return res.status(500).json({ error: "Unable to load breaks. Run 003_barber_workspace.sql first." });
+  res.json({ breaks: data ?? [] });
+});
+
+app.post("/api/staff/breaks", requireAuth, requireStaff, async (req, res) => {
+  const { breakDate, startTime, endTime, note } = req.body ?? {};
+  if (!isDate(breakDate) || !isTime(startTime) || !isTime(endTime) || startTime >= endTime || (note !== undefined && typeof note !== "string")) return res.status(400).json({ error: "Valid break date and times are required" });
+  const { data, error } = await supabaseAdmin.from("staff_breaks").insert({ staff_id: res.locals.staff.staff_id, break_date: breakDate, start_time: startTime, end_time: endTime, note: note?.trim() || null }).select().single();
+  if (error) return res.status(500).json({ error: "Unable to save break" }); res.status(201).json({ break: data });
+});
+
+app.delete("/api/staff/breaks/:id", requireAuth, requireStaff, async (req, res) => {
+  const { data, error } = await supabaseAdmin.from("staff_breaks").delete().eq("break_id", req.params.id).eq("staff_id", res.locals.staff.staff_id).select("break_id").maybeSingle();
+  if (error) return res.status(500).json({ error: "Unable to remove break" }); if (!data) return res.status(404).json({ error: "Break not found" }); res.json({ message: "Break removed" });
+});
+
+app.get("/api/staff/profile", requireAuth, requireStaff, async (_req, res) => {
+  const { data, error } = await supabaseAdmin.from("users").select("full_name, email, phone").eq("user_id", res.locals.user.id).maybeSingle();
+  if (error || !data) return res.status(500).json({ error: "Unable to load profile" }); res.json({ profile: { ...data, specialty: res.locals.staff.specialty } });
+});
+
+app.patch("/api/staff/profile", requireAuth, requireStaff, async (req, res) => {
+  const { fullName, phone, specialty } = req.body ?? {}; if ([fullName, phone, specialty].some((x) => x !== undefined && typeof x !== "string")) return res.status(400).json({ error: "Invalid profile details" });
+  const userUpdate: Record<string, unknown> = {}; if (fullName !== undefined) userUpdate.full_name = fullName.trim(); if (phone !== undefined) userUpdate.phone = phone.trim() || null;
+  if (Object.keys(userUpdate).length) { const { error } = await supabaseAdmin.from("users").update(userUpdate).eq("user_id", res.locals.user.id); if (error) return res.status(500).json({ error: "Unable to update profile" }); }
+  if (specialty !== undefined) { const { error } = await supabaseAdmin.from("staff").update({ specialty: specialty.trim() || null }).eq("staff_id", res.locals.staff.staff_id); if (error) return res.status(500).json({ error: "Unable to update specialty" }); }
+  res.json({ message: "Profile updated" });
 });
 
 // Which status a staff member may move an appointment to, from its current status.

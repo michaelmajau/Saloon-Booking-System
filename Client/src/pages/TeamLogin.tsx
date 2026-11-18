@@ -87,7 +87,10 @@ const TeamLogin = () => {
           return;
         }
 
-        navigate("/staff/dashboard", { replace: true });
+        navigate(
+          staff.staff_type === "barber" ? "/staff/barber" : "/staff/dashboard",
+          { replace: true },
+        );
         return;
       }
 
