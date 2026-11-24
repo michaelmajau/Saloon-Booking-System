@@ -104,8 +104,10 @@
   min-height: 640px;
 }
 .hero__image {
-  /* Photo lives at public/assets/salon-interior.jpg */
-  background: #c9c4bb url("/assets/salon-interior.jpg") center / cover no-repeat;
+  background-color: #c9c4bb;
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
 }
 .hero__text {
   display: flex;

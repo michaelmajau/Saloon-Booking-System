@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabase";
@@ -11,32 +10,18 @@ function AuthCallback() {
     let active = true;
 
     const handleConfirmation = async () => {
-      try {
-        const { data, error } = await supabase.auth.getSession();
+      const { data, error } = await supabase.auth.getSession();
 
-        if (!active) return;
+      if (!active) return;
 
-        if (error) {
-          throw error;
-        }
-
-        if (data.session) {
-          navigate("/dashboard", { replace: true });
-          return;
-        }
-
+      if (error || !data.session) {
         setErrorMessage(
-          "We couldn't find an active session. Please sign in."
+          "We could not confirm your account. Please sign in or request a new confirmation link.",
         );
-      } catch (error) {
-        if (!active) return;
-
-        setErrorMessage(
-          error instanceof Error
-            ? error.message
-            : "Email confirmation could not be completed."
-        );
+        return;
       }
+
+      navigate("/dashboard", { replace: true });
     };
 
     void handleConfirmation();
@@ -47,34 +32,32 @@ function AuthCallback() {
   }, [navigate]);
 
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center bg-[#F7F5F1] px-6 text-center">
+    <main className="flex min-h-screen items-center justify-center bg-[#F7F5F1] px-6 text-center">
       {errorMessage ? (
-        <div className="text-center">
+        <section>
           <h1 className="text-2xl font-semibold text-[#29221F]">
             Confirmation status
           </h1>
 
-          <p className="mt-4 text-[#82766E]">
-            {errorMessage}
-          </p>
+          <p className="mt-4 text-[#82766E]">{errorMessage}</p>
 
           <Link
             to="/sign-in"
-            className="mt-6 inline-block rounded-lg bg-[#70263E] px-6 py-3 text-white"
+            className="mt-6 inline-block bg-[#70263E] px-6 py-3 text-white"
           >
             Go to Sign In
           </Link>
-        </div>
+        </section>
       ) : (
-        <div className="text-center">
+        <section>
           <h1 className="text-2xl font-semibold text-[#29221F]">
-            Verifying your account...
+            Confirming your account…
           </h1>
 
           <p className="mt-3 text-[#82766E]">
-            Please wait while we redirect you to your dashboard.
+            Please wait while we redirect you.
           </p>
-        </div>
+        </section>
       )}
     </main>
   );
