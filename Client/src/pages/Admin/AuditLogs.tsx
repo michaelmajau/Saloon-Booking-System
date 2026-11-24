@@ -1,3 +1,4 @@
+import { AdminTable } from "./components/AdminUI";
 import { Fragment, useEffect, useMemo, useState, type FormEvent } from "react";
 import { ChevronDown, ChevronRight, Search } from "lucide-react";
 import { api } from "../../lib/api";
@@ -107,10 +108,10 @@ export default function AuditLogs() {
   const inputClass = "h-11 w-full border border-[#D7CABC] bg-white px-3 text-sm text-[#34251F] outline-none focus:border-[#70263E]";
 
   return (
-    <section className="mx-auto max-w-[1400px]">
+    <section className="bk-operations">
       <div>
         <p className="text-xs font-semibold uppercase tracking-[.25em] text-[#70263E]">Bookify admin · Security</p>
-        <h1 className="mt-5 font-serif text-5xl leading-none text-[#34251F] sm:text-6xl">Audit trail</h1>
+        <h1 className="mt-5 font-serif text-5xl leading-none text-[#34251F] sm:text-6xl">Security & Audit Logs</h1>
         <p className="mt-5 max-w-2xl text-[#82766E]">
           A record of every change made by admins, staff and customers: who did it, what changed and when. Entries can't be edited or deleted from here.
         </p>
@@ -156,7 +157,7 @@ export default function AuditLogs() {
         <p className="mb-4 text-sm text-[#82766E]">
           {data ? `${logs.length} ${logs.length === 1 ? "entry" : "entries"}` : loading ? "Loading…" : ""}
         </p>
-        <table className="w-full min-w-[720px] border-collapse text-sm">
+        <AdminTable className="w-full min-w-[720px] border-collapse text-sm">
           <thead>
             <tr className="border-b border-[#34251F] text-left text-xs uppercase tracking-wider text-[#5F5047]">
               <th scope="col" className="w-8 py-3" />
@@ -229,7 +230,7 @@ export default function AuditLogs() {
               );
             })}
           </tbody>
-        </table>
+        </AdminTable>
         {data && logs.length === 0 && (
           <p className="py-10 text-center text-[#82766E]">No changes were recorded for this period and filter. Try a wider date range.</p>
         )}

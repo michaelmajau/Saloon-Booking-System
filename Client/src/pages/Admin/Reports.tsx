@@ -1,3 +1,5 @@
+import { BarChart } from "./components/BarChart";
+import { AdminTable } from "./components/AdminUI";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { Printer, Download, Search, ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
 import { api, kes } from "../../lib/api";
@@ -175,7 +177,7 @@ export default function Reports() {
   const inputClass = "h-11 w-full border border-[#D7CABC] bg-white px-3 text-sm text-[#34251F] outline-none focus:border-[#70263E]";
 
   return (
-    <section className="mx-auto max-w-[1400px]">
+    <section className="bk-operations">
       {/* When printing, show only the report itself. */}
       <style>{`.print-only { display: none; }
       @media print {
@@ -198,7 +200,7 @@ export default function Reports() {
       <div className="no-print flex flex-wrap items-end justify-between gap-6">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[.25em] text-[#70263E]">Bookify admin · Reports</p>
-          <h1 className="mt-5 font-serif text-5xl leading-none text-[#34251F] sm:text-6xl">Appointments report</h1>
+          <h1 className="mt-5 font-serif text-5xl leading-none text-[#34251F] sm:text-6xl">Reports & Analytics</h1>
           <p className="mt-5 text-[#82766E]">Choose a period, filter and sort, then print or save it as a PDF.</p>
         </div>
         <div className="flex flex-wrap gap-3">
@@ -280,6 +282,15 @@ export default function Reports() {
         <p role="alert" className="no-print mt-6 border border-red-200 bg-red-50 p-4 text-sm text-red-700">{error}</p>
       )}
 
+      {data && rows.length > 0 && (
+        <div className="no-print mt-6">
+          <BarChart title="Appointments by outcome" items={[
+            { label: "Completed", value: totals.completed, formatted: String(totals.completed) },
+            { label: "Cancelled or no-show", value: totals.lost, formatted: String(totals.lost) },
+            { label: "Other", value: totals.bookings - totals.completed - totals.lost, formatted: String(totals.bookings - totals.completed - totals.lost) },
+          ]} />
+        </div>
+      )}
       {/* The report (this is what gets printed) */}
       <article className="report-sheet mt-8 bg-white p-6 shadow-sm sm:p-10">
         <header className="flex flex-wrap items-start justify-between gap-6 border-b-2 border-[#34251F] pb-6">
@@ -321,7 +332,7 @@ export default function Reports() {
 
         {/* Table */}
         <div className="mt-6 overflow-x-auto">
-          <table className="w-full min-w-[760px] border-collapse text-sm">
+          <AdminTable className="w-full min-w-[760px] border-collapse text-sm">
             <thead>
               <tr className="border-b border-[#34251F] text-left text-xs uppercase tracking-wider text-[#5F5047]">
                 {COLUMNS.map((col) => {
@@ -376,7 +387,7 @@ export default function Reports() {
                 </tr>
               </tfoot>
             )}
-          </table>
+          </AdminTable>
         </div>
 
         {loading && !data && <p className="py-10 text-center text-[#82766E]">Building the report…</p>}

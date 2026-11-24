@@ -10,7 +10,15 @@ const serverUrl = (
 
 const apiBase = `${serverUrl}/api`;
 
-console.log("BOOKIFY API BASE URL:", apiBase);
+export class ApiError extends Error {
+  readonly status: number;
+
+  constructor(message: string, status: number) {
+    super(message);
+    this.name = "ApiError";
+    this.status = status;
+  }
+}
 
 export async function api<T>(
   path: string,
@@ -19,11 +27,6 @@ export async function api<T>(
   const { data } = await supabase.auth.getSession();
 
   const url = `${apiBase}${path}`;
-
-  console.log("BOOKIFY API REQUEST:", {
-    method: options.method ?? "GET",
-    url,
-  });
 
   const response = await fetch(url, {
     ...options,
@@ -40,16 +43,8 @@ export async function api<T>(
 
   const body = await response.json().catch(() => ({}));
 
-  console.log("BOOKIFY API RESPONSE:", {
-    url,
-    status: response.status,
-    body,
-  });
-
   if (!response.ok) {
-    throw new Error(
-      body.error ?? body.message ?? "Request failed"
-    );
+    throw new ApiError(body.error ?? body.message ?? "Request failed", response.status);
   }
 
   return body as T;

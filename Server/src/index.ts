@@ -19,6 +19,7 @@ import { requireStaff } from "./middleware/requireStaff.js";
 
 import { writeAuditLog } from "./utils/auditLog.js";
 import adminReportsRouter from "./routes/adminReports.js";
+import adminBusinessRouter from "./routes/adminBusiness.js";
 import helmet from "helmet";
 
 dotenv.config();
@@ -548,23 +549,29 @@ app.get("/api/admin/dashboard", requireAuth, requireAdmin, async (_req, res) => 
 
     const date = today();
 
-    const start = new Date(`${date}T00:00:00+03:00`); start.setDate(start.getDate() - ((start.getDay() + 6) % 7));
+    const start = new Date(`${date}T00:00:00Z`);
+    const weekday = start.getUTCDay();
+    start.setUTCDate(start.getUTCDate() - ((weekday + 6) % 7));
+    const localTime = new Intl.DateTimeFormat("en-GB", {
+      timeZone: "Africa/Nairobi", hour: "2-digit", minute: "2-digit", second: "2-digit", hourCycle: "h23",
+    }).format(new Date());
 
-    const week = start.toLocaleDateString("en-CA", { timeZone: "Africa/Nairobi" });
+    const week = start.toISOString().slice(0, 10);
 
-    const [day, weekly, team] = await Promise.all([
+    const [day, weekly, team, shifts] = await Promise.all([
 
       supabaseAdmin.from("appointments").select(appointmentFields).eq("appointment_date", date).order("start_time"),
 
       supabaseAdmin.from("appointments").select("total_amount, status, payment_status").gte("appointment_date", week).lte("appointment_date", date),
 
       supabaseAdmin.from("staff").select("staff_id").eq("is_active", true),
+      supabaseAdmin.from("staff_schedules").select("staff_id").eq("days_of_week", weekday).lte("start_time", localTime).gt("end_time", localTime),
 
     ]);
 
-    if (day.error || weekly.error || team.error) {
+    if (day.error || weekly.error || team.error || shifts.error) {
 
-      console.error("Dashboard queries failed", { day: day.error, weekly: weekly.error, team: team.error });
+      console.error("Dashboard queries failed", { day: day.error, weekly: weekly.error, team: team.error, shifts: shifts.error });
 
       return res.status(500).json({ error: day.error?.message ?? weekly.error?.message ?? team.error?.message ?? "Dashboard query failed" });
 
@@ -574,7 +581,51 @@ app.get("/api/admin/dashboard", requireAuth, requireAdmin, async (_req, res) => 
 
     const weeklyRevenue = (weekly.data ?? []).filter((x) => x.status === "completed" && x.payment_status === "paid").reduce((sum, x) => sum + Number(x.total_amount), 0);
 
-    res.json({ date, currency: "KES", metrics: { todayAppointments: appointments.filter((x) => !["cancelled", "no_show"].includes(String(x.status))).length, weeklyRevenue, activeStaff: team.data?.length ?? 0, nextAppointment: appointments.find((x) => ["confirmed", "checked_in"].includes(String(x.status))) ?? null }, appointments });
+    const scheduled = new Set((shifts.data ?? []).map((shift) => shift.staff_id));
+    const onShiftStaff = (team.data ?? []).filter((member) => scheduled.has(member.staff_id)).length;
+    const customerIds = [...new Set(appointments.filter((row) => row.status === "completed").map((row) => String(row.customer_id)))];
+    const activeIds = new Set((team.data ?? []).map((member) => String(member.staff_id)));
+    const [profile, service, firstBooking, hours, previousVisits] = await Promise.all([
+      supabaseAdmin.from("salon_settings").select("salon_name, location, opening_time, closing_time").limit(1).maybeSingle(),
+      supabaseAdmin.from("services").select("service_id").limit(1),
+      supabaseAdmin.from("appointments").select("appointment_id").limit(1),
+      supabaseAdmin.from("staff_schedules").select("staff_id, start_time, end_time").eq("days_of_week", weekday),
+      Promise.all(customerIds.map((id) => supabaseAdmin.from("appointments").select("appointment_id")
+        .eq("customer_id", id).eq("status", "completed").lt("appointment_date", date).limit(1))),
+    ]);
+    const setup = {
+      profile: Boolean(profile.data?.salon_name && profile.data.location),
+      service: Boolean(service.data?.length),
+      team: activeIds.size > 0,
+      hours: Boolean(profile.data?.opening_time && profile.data.closing_time && profile.data.opening_time < profile.data.closing_time),
+      appointment: Boolean(firstBooking.data?.length),
+    };
+    const returning = previousVisits.filter((visit) => visit.data?.length).length;
+    const customerCounts = previousVisits.some((visit) => visit.error) ? undefined : { new: customerIds.length - returning, returning };
+    const minute = (time: unknown) => {
+      const [hour = Number.NaN, minute = Number.NaN] = String(time).split(":").map(Number);
+      return hour * 60 + minute;
+    };
+    let scheduledMinutes = 0;
+    let bookedMinutes = 0;
+    for (const id of activeIds) {
+      const scheduled = new Set<number>();
+      const booked = new Set<number>();
+      for (const shift of hours.data ?? []) {
+        if (String(shift.staff_id) !== id) continue;
+        for (let t = minute(shift.start_time); t < minute(shift.end_time); t++) scheduled.add(t);
+      }
+      for (const row of appointments) {
+        if (String(row.staff_id) !== id || ["cancelled", "no_show"].includes(String(row.status))) continue;
+        for (let t = minute(row.start_time); t < minute(row.end_time); t++) {
+          if (scheduled.has(t)) booked.add(t);
+        }
+      }
+      scheduledMinutes += scheduled.size;
+      bookedMinutes += booked.size;
+    }
+    const utilization = hours.error || !scheduledMinutes ? null : Math.round(100 * bookedMinutes / scheduledMinutes);
+    res.json({ date, currency: "KES", setup, customerCounts, utilization, metrics: { onShiftStaff, todayAppointments: appointments.filter((x) => !["cancelled", "no_show"].includes(String(x.status))).length, weeklyRevenue, activeStaff: team.data?.length ?? 0, nextAppointment: appointments.find((x) => ["confirmed", "checked_in"].includes(String(x.status))) ?? null }, appointments });
 
   } catch (error) { console.error(error); res.status(500).json({ error: "Unable to load dashboard" }); }
 
@@ -586,7 +637,15 @@ app.get("/api/admin/appointments", requireAuth, requireAdmin, async (req, res) =
 
     let query = supabaseAdmin.from("appointments").select(appointmentFields).order("appointment_date").order("start_time").limit(250);
 
-    if (isDate(req.query.date)) query = query.eq("appointment_date", req.query.date);
+    if (isDate(req.query.date)) {
+      query = query.eq("appointment_date", req.query.date);
+    } else if (req.query.from !== undefined || req.query.to !== undefined) {
+      const { from, to } = req.query;
+      if (!isDate(from) || !isDate(to) || from > to || Date.parse(to) - Date.parse(from) > 30 * 86400000) {
+        return res.status(400).json({ error: "Provide a date range of up to 31 days" });
+      }
+      query = query.gte("appointment_date", from).lte("appointment_date", to);
+    }
 
     const { data, error } = await query; if (error) throw error;
 
@@ -666,6 +725,20 @@ app.get("/api/admin/team", requireAuth, requireAdmin, async (_req, res) => {
 
 });
 
+app.get("/api/admin/team/schedule", requireAuth, requireAdmin, async (_req, res) => {
+  const pageSize = 500;
+  const shifts = [];
+  for (let offset = 0; ; offset += pageSize) {
+    const { data, error } = await supabaseAdmin.from("staff_schedules")
+      .select("schedule_id, staff_id, days_of_week, start_time, end_time")
+      .order("schedule_id").range(offset, offset + pageSize - 1);
+    if (error) return res.status(500).json({ error: "Unable to load team schedules" });
+    shifts.push(...data);
+    if (data.length < pageSize) break;
+  }
+  res.json({ shifts });
+});
+
 app.post("/api/admin/staff", requireAuth, requireAdmin, async (req, res) => {
 
   try {
@@ -680,7 +753,7 @@ app.post("/api/admin/staff", requireAuth, requireAdmin, async (req, res) => {
 
     if (existing) return res.status(409).json({ error: "An account with this email already exists" });
 
-    const { data: invite, error: inviteError } = await supabaseAdmin.auth.admin.inviteUserByEmail(normalized, { data: { full_name: fullName.trim() }, redirectTo: "http://localhost:5173/auth/set-password" });
+    const { data: invite, error: inviteError } = await supabaseAdmin.auth.admin.inviteUserByEmail(normalized, { data: { full_name: fullName.trim() }, redirectTo: new URL("/auth/set-password", clientOrigin).toString() });
 
     if (inviteError || !invite.user) return res.status(400).json({ error: inviteError?.message ?? "Unable to invite staff" });
 
@@ -1019,6 +1092,7 @@ app.delete("/api/google/disconnect", requireAuth, async (_req, res) => {
 
 // Reports and audit trail (admin only) — see routes/adminReports.ts
 app.use("/api/admin", adminReportsRouter);
+app.use("/api/admin", adminBusinessRouter);
 
 // Customer cancels one of their own appointments (at least 2 hours before it starts)
 app.patch("/api/customer/appointments/:id/cancel", requireAuth, async (req, res) => {

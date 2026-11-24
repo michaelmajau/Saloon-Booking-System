@@ -1,7 +1,10 @@
+import { useOutletContext } from "react-router-dom";
+import type { WorkspaceContext } from "./AdminLayout";
+import { AdminTable } from "./components/AdminUI";
 import { useEffect, useState, type FormEvent } from "react";
 import { api, kes } from "../../lib/api";
 
-type Mode = "appointments" | "team" | "services" | "settings";
+type Mode = "appointments" | "services";
 
 type Appointment = {
   appointment_id: string;
@@ -13,14 +16,6 @@ type Appointment = {
   customer: { full_name: string } | null;
   staff: { full_name: string } | null;
   service: { service_name: string } | null;
-};
-
-type Staff = {
-  staff_id: string;
-  staff_type: string;
-  specialty: string | null;
-  is_active: boolean;
-  profile: { full_name: string; email: string } | null;
 };
 
 type Service = {
@@ -42,22 +37,16 @@ const titles: Record<Mode, [string, string]> = {
     "Appointments",
     "Review every booking and update its service state.",
   ],
-  team: ["Team", "Invite, activate and manage your Bookify team."],
   services: [
     "Services & pricing",
     "Maintain the catalogue customers will book in Kenyan shillings.",
   ],
-  settings: [
-    "Salon settings",
-    "Keep your operational details accurate. Currency is fixed to KES.",
-  ],
 };
 
 export default function AdminOperations({ mode }: { mode: Mode }) {
+  const { openBooking, revision } = useOutletContext<WorkspaceContext>();
   const [appointments, setAppointments] = useState<Appointment[]>([]);
-  const [team, setTeam] = useState<Staff[]>([]);
   const [services, setServices] = useState<Service[]>([]);
-  const [settings, setSettings] = useState<Record<string, string> | null>(null);
 
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
@@ -75,21 +64,9 @@ export default function AdminOperations({ mode }: { mode: Mode }) {
         setAppointments(response.appointments);
       }
 
-      if (mode === "team") {
-        const response = await api<{ staff: Staff[] }>("/admin/team");
-        setTeam(response.staff);
-      }
-
       if (mode === "services") {
         const response = await api<{ services: Service[] }>("/admin/services");
         setServices(response.services);
-      }
-
-      if (mode === "settings") {
-        const response = await api<{ settings: Record<string, string> | null }>(
-          "/admin/settings"
-        );
-        setSettings(response.settings);
       }
     } catch (caughtError) {
       setError(
@@ -104,7 +81,7 @@ export default function AdminOperations({ mode }: { mode: Mode }) {
 
   useEffect(() => {
     void load();
-  }, [mode]);
+  }, [mode, revision]);
 
   const save: SaveAction = async (
     path,
@@ -134,26 +111,6 @@ export default function AdminOperations({ mode }: { mode: Mode }) {
     }
   };
 
-  const submitStaff = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-
-    const form = new FormData(event.currentTarget);
-
-    const success = await save(
-      "/admin/staff",
-      {
-        fullName: form.get("fullName"),
-        email: form.get("email"),
-        staffType: form.get("staffType"),
-        specialty: form.get("specialty"),
-      },
-      "Invitation sent.",
-      "POST"
-    );
-
-    if (success) event.currentTarget.reset();
-  };
-
   const submitService = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
@@ -176,15 +133,12 @@ export default function AdminOperations({ mode }: { mode: Mode }) {
   const [title, description] = titles[mode];
 
   return (
-    <section className="mx-auto max-w-[1400px]">
-      <p className="text-xs font-semibold uppercase tracking-[.24em] text-[#70263E]">
-        Bookify · Admin workspace
-      </p>
-
-      <h1 className="mt-4 font-serif text-5xl text-[#34251F]">{title}</h1>
-
-      <p className="mt-4 text-[#82766E]">{description}</p>
-
+    <section className="bk-operations">
+      <header className="bk-page-heading">
+        <div><h1>{mode === "services" ? "Services" : title}</h1><p>{description}</p></div>
+        {mode === "appointments" && <button className="admin-primary" type="button" onClick={() => openBooking()}>+ New appointment</button>}
+        {mode === "services" && <a className="admin-primary" href="#add-service">+ Add service</a>}
+      </header>
       {error && (
         <p
           role="alert"
@@ -208,17 +162,11 @@ export default function AdminOperations({ mode }: { mode: Mode }) {
             <AppointmentList rows={appointments} save={save} />
           )}
 
-          {mode === "team" && (
-            <TeamList rows={team} submit={submitStaff} save={save} />
-          )}
 
           {mode === "services" && (
             <ServiceList rows={services} submit={submitService} save={save} />
           )}
 
-          {mode === "settings" && (
-            <SettingsForm data={settings} save={save} />
-          )}
         </div>
       )}
     </section>
@@ -276,7 +224,7 @@ function AppointmentList({
         </p>
       </div>
 
-      <table className="min-w-full text-left text-sm">
+      <AdminTable className="min-w-full text-left text-sm">
         <thead className="border-b border-[#e7ded3] text-xs uppercase tracking-wider text-[#82766E]">
           <tr>
             <th className="pb-3">Time & client</th>
@@ -342,113 +290,11 @@ function AppointmentList({
             </tr>
           ))}
         </tbody>
-      </table>
+      </AdminTable>
 
       {rows.length === 0 && (
         <p className="py-8 text-[#82766E]">No appointments have been made yet.</p>
       )}
-    </div>
-  );
-}
-
-function TeamList({
-  rows,
-  submit,
-  save,
-}: {
-  rows: Staff[];
-  submit: (event: FormEvent<HTMLFormElement>) => Promise<void>;
-  save: SaveAction;
-}) {
-  return (
-    <div className="grid gap-6 xl:grid-cols-[1fr_360px]">
-      <div className="bg-[#FFFCF8] p-5 sm:p-8">
-        <h2 className="font-serif text-3xl">Current team</h2>
-
-        <div className="mt-5 divide-y divide-[#e7ded3]">
-          {rows.map((staff) => (
-            <article
-              key={staff.staff_id}
-              className="flex flex-wrap items-center justify-between gap-4 py-4"
-            >
-              <div>
-                <b>{staff.profile?.full_name ?? "Staff member"}</b>
-                <p className="mt-1 text-sm text-[#82766E]">
-                  {staff.staff_type} · {staff.specialty || "General services"} ·{" "}
-                  {staff.profile?.email}
-                </p>
-              </div>
-
-              <button
-                type="button"
-                onClick={() =>
-                  void save(
-                    `/admin/staff/${staff.staff_id}`,
-                    { isActive: !staff.is_active },
-                    `Staff member ${
-                      staff.is_active ? "deactivated" : "activated"
-                    }.`
-                  )
-                }
-                className={
-                  staff.is_active
-                    ? "border border-[#70263E] px-3 py-2 text-xs font-bold text-[#70263E]"
-                    : "bg-[#70263E] px-3 py-2 text-xs font-bold text-white"
-                }
-              >
-                {staff.is_active ? "Deactivate" : "Activate"}
-              </button>
-            </article>
-          ))}
-        </div>
-
-        {rows.length === 0 && (
-          <p className="mt-5 text-[#82766E]">No staff have been invited.</p>
-        )}
-      </div>
-
-      <form
-        onSubmit={(event) => void submit(event)}
-        className="bg-[#34251F] p-6 text-white"
-      >
-        <p className="text-xs font-bold uppercase tracking-wider text-[#e6b6c6]">
-          New team member
-        </p>
-
-        <h2 className="mt-3 font-serif text-3xl">Send invitation</h2>
-
-        <div className="mt-5 space-y-3">
-          <input
-            required
-            name="fullName"
-            placeholder="Full name"
-            className="w-full bg-white p-3 text-[#34251F]"
-          />
-
-          <input
-            required
-            name="email"
-            type="email"
-            placeholder="Email address"
-            className="w-full bg-white p-3 text-[#34251F]"
-          />
-
-          <select name="staffType" className="w-full bg-white p-3 text-[#34251F]">
-            <option value="barber">Barber</option>
-            <option value="stylist">Stylist</option>
-          </select>
-
-          <input
-            name="specialty"
-            placeholder="Specialty (optional)"
-            className="w-full bg-white p-3 text-[#34251F]"
-          />
-        </div>
-
-        <button className="mt-5 w-full bg-[#EEE3D3] p-3 text-sm font-bold text-[#34251F]">
-          Send invitation
-        </button>
-      </form>
     </div>
   );
 }
@@ -462,6 +308,7 @@ function ServiceList({
   submit: (event: FormEvent<HTMLFormElement>) => Promise<void>;
   save: SaveAction;
 }) {
+  const [serviceQuery, setServiceQuery] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [localError, setLocalError] = useState("");
@@ -541,7 +388,7 @@ function ServiceList({
   return (
     <div className="grid gap-6 xl:grid-cols-[1fr_360px]">
       <div className="bg-[#FFFCF8] p-5 sm:p-8">
-        <h2 className="font-serif text-3xl">Published services</h2>
+        <input className="bk-field" placeholder="Search services…" aria-label="Search services" value={serviceQuery} onChange={(event) => setServiceQuery(event.target.value)} />
 
         {localError && (
           <p role="alert" className="mt-4 text-sm text-red-600">
@@ -550,7 +397,7 @@ function ServiceList({
         )}
 
         <div className="mt-5 divide-y divide-[#e7ded3]">
-          {rows.map((service) => (
+          {rows.filter((service) => service.service_name.toLowerCase().includes(serviceQuery.trim().toLowerCase())).map((service) => (
             <article key={service.service_id} className="py-5">
               {editingId === service.service_id ? (
                 <div className="space-y-3">
@@ -649,7 +496,7 @@ function ServiceList({
         )}
       </div>
 
-      <form
+      <form id="add-service"
         onSubmit={(event) => void submit(event)}
         className="bg-[#34251F] p-6 text-white"
       >
@@ -691,84 +538,5 @@ function ServiceList({
         </button>
       </form>
     </div>
-  );
-}
-
-function SettingsForm({
-  data,
-  save,
-}: {
-  data: Record<string, string> | null;
-  save: SaveAction;
-}) {
-  if (!data) {
-    return (
-      <p className="bg-white p-6 text-[#82766E]">
-        Run <code>Server/database/schema.sql</code> in Supabase to initialize
-        Bookify settings.
-      </p>
-    );
-  }
-
-  const submitSettings = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-
-    const form = new FormData(event.currentTarget);
-
-    await save(
-      "/admin/settings",
-      {
-        salonName: form.get("salonName"),
-        location: form.get("location"),
-        phone: form.get("phone"),
-        email: form.get("email"),
-        openingTime: form.get("openingTime"),
-        closingTime: form.get("closingTime"),
-      },
-      "Settings saved."
-    );
-  };
-
-  return (
-    <form
-      onSubmit={(event) => void submitSettings(event)}
-      className="max-w-2xl bg-[#FFFCF8] p-6 sm:p-8"
-    >
-      <div className="grid gap-4 sm:grid-cols-2">
-        {[
-          ["salonName", "Salon name", data.salon_name],
-          ["location", "Location", data.location],
-          ["phone", "Phone", data.phone ?? ""],
-          ["email", "Email", data.email ?? ""],
-          ["openingTime", "Opening time", data.opening_time],
-          ["closingTime", "Closing time", data.closing_time],
-        ].map(([name, label, value]) => (
-          <label key={name} className="text-sm font-semibold">
-            {label}
-
-            <input
-              name={name}
-              defaultValue={value}
-              type={
-                name.includes("Time")
-                  ? "time"
-                  : name === "email"
-                    ? "email"
-                    : "text"
-              }
-              className="mt-2 block w-full border border-[#d7cabc] bg-white p-3 font-normal"
-            />
-          </label>
-        ))}
-      </div>
-
-      <p className="mt-5 text-sm text-[#82766E]">
-        Currency: <b>Kenyan shilling (KES)</b>
-      </p>
-
-      <button className="mt-6 bg-[#70263E] px-5 py-3 text-sm font-bold text-white">
-        Save settings
-      </button>
-    </form>
   );
 }

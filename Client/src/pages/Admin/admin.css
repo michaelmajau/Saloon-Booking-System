@@ -1,0 +1,133 @@
+@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap");
+
+.bookify-admin {
+  --admin-ink: #29221f;
+  --admin-muted: #746b66;
+  --admin-canvas: #faf8f5;
+  --admin-line: #e6dfda;
+  --admin-accent: #70263e;
+  --admin-blush: #f3e5e9;
+  min-height: 100dvh;
+  padding: clamp(12px, 2.65vw, 42px) clamp(12px, 4.4vw, 64px);
+  background: radial-gradient(ellipse at top, #612537, #4b1c2a);
+  color: var(--admin-ink);
+  font-family: Manrope, system-ui, sans-serif;
+  font-size: 14px;
+}
+.bookify-admin :focus-visible { outline: 2px solid var(--admin-accent); outline-offset: 3px; }
+.bookify-admin button { cursor: pointer; }
+.bookify-admin button:disabled { cursor: default; opacity: .55; }
+.admin-workspace { display: flex; max-width: 1440px; min-height: min(760px, calc(100dvh - 9vw)); margin: auto; background: white; border: 1px solid var(--admin-line); border-radius: 18px; box-shadow: 0 18px 48px #30171f30; }
+.admin-desktop-nav { display: flex; flex: 0 0 clamp(164px, 16.5vw, 225px); border-radius: 17px 0 0 17px; overflow: hidden; }
+.admin-sidebar { display: flex; flex-direction: column; width: 100%; padding: 24px 12px; background: var(--admin-canvas); }
+.admin-brand { padding-inline: 8px; color: var(--admin-accent); font-size: 21px; font-weight: 800; }
+.admin-studio { display: grid; gap: 5px; margin: 20px 8px 12px; }
+.admin-studio span { color: var(--admin-muted); font-size: 10px; font-weight: 700; text-transform: uppercase; }
+.admin-sidebar nav { display: grid; gap: 4px; }
+.admin-sidebar nav a { padding: 9px 12px; border-radius: 7px; color: var(--admin-muted); transition: background-color .18s, color .18s; }
+.admin-sidebar nav a:hover, .admin-sidebar nav .admin-nav-active { color: var(--admin-accent); background: var(--admin-blush); }
+.admin-sidebar nav .admin-nav-active { font-weight: 700; }
+.admin-sidebar-footer { display: grid; gap: 5px; margin-top: auto; padding: 25px 8px 0; color: var(--admin-muted); font-size: 12px; }
+.admin-text-button { justify-self: start; color: var(--admin-accent); text-decoration: underline; text-underline-offset: 3px; }
+.admin-main { flex: 1; min-width: 0; }
+.admin-content { padding: clamp(16px, 2.5vw, 36px); }
+.admin-mobile-bar { display: none; }
+.admin-navbar { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.admin-navbar h1 { font-size: clamp(20px, 2.25vw, 28px); line-height: 1.25; font-weight: 800; }
+.admin-navbar p { margin-top: 5px; color: var(--admin-muted); font-size: 13px; }
+.admin-navbar > .admin-primary { min-width: 140px; justify-content: flex-start; }
+.admin-primary, .admin-secondary { display: inline-flex; align-items: center; justify-content: center; gap: 5px; padding: 7px 12px; border-radius: 7px; font-weight: 700; font-size: 12px; transition: background-color .18s, box-shadow .18s; }
+.admin-primary { background: var(--admin-accent); color: #fff; }
+.admin-primary:hover:not(:disabled) { background: #552034; box-shadow: 0 3px 10px #30171f26; }
+.admin-secondary { background: #fff; color: var(--admin-accent); border: 1px solid var(--admin-line); }
+.admin-secondary:hover { background: var(--admin-canvas); }
+.admin-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-block: 18px 18px; }
+.admin-stat, .admin-panel { min-width: 0; background: var(--admin-canvas); border-radius: 10px; padding: 11px 14px; }
+.admin-stat p { font-size: 12px; }
+.admin-stat p, .admin-stat small, .admin-panel small, .admin-panel p { color: var(--admin-muted); }
+.admin-stat strong { display: block; margin: 3px 0; font-size: clamp(18px, 2.2vw, 28px); font-weight: 800; line-height: 1.25; }
+.admin-stat small { display: block; font-size: 11px; }
+.admin-calendar-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 14px; }
+.admin-calendar-toolbar h2, .admin-panel h2 { font-weight: 800; }
+.admin-switch { display: flex; gap: 2px; background: var(--admin-canvas); padding: 3px; border-radius: 7px; }
+.admin-switch { min-width: 152px; }
+.admin-switch button { flex: 1; padding: 3px 12px; border-radius: 5px; color: var(--admin-muted); font-size: 12px; }
+.admin-switch button[aria-pressed="true"], .admin-switch button:hover { background: var(--admin-blush); color: var(--admin-accent); }
+.admin-dashboard-grid { display: grid; grid-template-columns: minmax(0, 2.08fr) minmax(175px, 1fr); gap: 18px; }
+.admin-dashboard-aside { display: flex; flex-direction: column; gap: 14px; }
+.admin-dashboard-aside > :first-child { min-height: 180px; }
+.admin-panel ul { display: grid; gap: 16px; margin-top: 12px; }
+.admin-panel li { display: grid; grid-template-columns: 48px 1fr; gap: 5px; font-size: 12px; }
+.admin-panel li time { color: var(--admin-accent); font-weight: 800; }
+.admin-panel small { display: block; margin-top: 4px; }
+.admin-panel p { margin-top: 6px; font-size: 12px; }
+.admin-spotlight { min-height: 150px; background: var(--admin-blush); }
+.admin-spotlight p { margin: 0 0 8px; color: var(--admin-accent); text-transform: uppercase; font-size: 10px; font-weight: 800; }
+.admin-spotlight a { margin-top: 10px; }
+.admin-calendar, .admin-table-scroll { overflow-x: auto; border: 1px solid var(--admin-line); border-radius: 9px; }
+.admin-calendar { position: relative; }
+.admin-calendar-grid { display: grid; }
+.admin-calendar-message { position: absolute; z-index: 1; top: 50%; left: 50%; transform: translate(-50%, -50%); width: max-content; max-width: 80%; padding: 8px 12px; border: 1px solid var(--admin-line); border-radius: 7px; background: white; color: var(--admin-muted); font-size: 12px; text-align: center; }
+.admin-calendar-heading { height: 44px; padding: 12px 9px; color: var(--admin-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 700; font-size: 12px; }
+.admin-calendar-grid > :first-child .admin-calendar-heading { text-transform: uppercase; }
+.admin-calendar-hour { padding: 8px 9px; border-top: 1px solid var(--admin-line); color: var(--admin-muted); font-size: 11px; }
+.admin-calendar-column { min-width: 0; }
+.admin-calendar-lane { position: relative; border-left: 1px solid var(--admin-line); background-image: linear-gradient(to bottom, var(--admin-line) 1px, transparent 1px); }
+.admin-calendar-booking { position: absolute; inset-inline: 4px; overflow: hidden; padding: 2px 5px; border-left: 3px solid var(--admin-accent); border-radius: 5px; background: var(--admin-blush); color: var(--admin-accent); font-size: 10px; line-height: 1.2; transition: box-shadow .18s; }
+.admin-calendar-booking[data-status="checked_in"], .admin-calendar-booking[data-status="completed"] { background: var(--admin-canvas); }
+.admin-calendar-booking:hover { box-shadow: 0 2px 8px #30171f35; z-index: 1; }
+.admin-calendar-booking strong, .admin-calendar-booking small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.admin-calendar-booking small { color: var(--admin-muted); margin-top: 3px; }
+.admin-mobile-agenda { display: none; }
+.admin-agenda { width: 100%; text-align: left; font-size: 12px; }
+.admin-agenda th, .admin-agenda td { padding: 10px; border-bottom: 1px solid var(--admin-line); }
+.admin-agenda th { background: var(--admin-canvas); font-weight: 700; }
+.admin-agenda tr:last-child td { border-bottom: 0; }
+.admin-agenda small { display: block; color: var(--admin-muted); }
+.admin-view-all { display: inline-block; margin-top: 12px; color: var(--admin-accent); font-size: 12px; font-weight: 700; }
+.admin-view-all:hover { text-decoration: underline; }
+.admin-empty, .admin-error, .admin-notice { padding: 12px; border-radius: 8px; background: var(--admin-canvas); color: var(--admin-muted); }
+.admin-error, .admin-notice { margin-block: 10px; }
+.admin-error { background: var(--admin-blush); color: var(--admin-accent); }
+.admin-error button { margin-top: 8px; }
+.admin-dialog { color: var(--admin-ink); border: 1px solid var(--admin-line); border-radius: 12px; padding: 18px; background: #fff; width: min(460px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); margin: auto; box-shadow: 0 18px 48px #30171f38; }
+.admin-dialog[open] { animation: admin-appear .16s ease-out; }
+.admin-dialog::backdrop { background: #30171f70; }
+.admin-dialog header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+.admin-dialog h2 { font-size: 18px; font-weight: 800; }
+.admin-booking-form fieldset, .admin-booking-form label { display: grid; gap: 5px; min-width: 0; }
+.admin-booking-form fieldset { gap: 12px; margin-bottom: 14px; }
+.admin-booking-form label { font-size: 12px; font-weight: 700; }
+.admin-booking-form input, .admin-booking-form select, .admin-booking-form textarea { width: 100%; min-width: 0; border: 1px solid var(--admin-line); border-radius: 6px; padding: 8px; font-size: 14px; font-weight: 500; background: #fff; }
+.admin-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+@keyframes admin-appear { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+@media (max-width: 800px) {
+  .admin-desktop-nav { display: none; }
+  .admin-mobile-bar { display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; border-bottom: 1px solid var(--admin-line); color: var(--admin-accent); }
+  .admin-dialog .admin-sidebar { border-radius: 8px; }
+}
+@media (max-width: 650px) {
+  .admin-dashboard-grid { grid-template-columns: minmax(0, 1fr); }
+  .admin-dashboard-aside > :first-child { min-height: 0; }
+  .admin-calendar { display: none; }
+  .admin-mobile-agenda { display: block; }
+  .admin-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .admin-stat { padding: 10px; font-size: 12px; }
+  .admin-stat:last-child { grid-column: 1 / -1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bookify-admin *, .bookify-admin *::before, .bookify-admin *::after { animation: none !important; transition: none !important; }
+}
+
+.admin-chart ul { gap: 8px; }
+.admin-chart li { grid-template-columns: minmax(100px, 150px) minmax(0, 1fr) 32px; align-items: center; }
+.admin-chart li strong { text-align: right; }
+.admin-chart-track { height: 8px; border-radius: 5px; background: var(--admin-blush); overflow: hidden; }
+.admin-chart-track > div { height: 100%; border-radius: 5px; background: var(--admin-accent); }
+@media print {
+  .bookify-admin { padding: 0; background: white; }
+  .admin-workspace { display: block; min-height: 0; border: 0; box-shadow: none; }
+  .admin-desktop-nav, .admin-mobile-bar { display: none !important; }
+  .admin-content { padding: 0; }
+  .admin-table-scroll { overflow: visible; border: 0; }
+}

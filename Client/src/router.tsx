@@ -14,6 +14,13 @@ import BarberRoute from "./components/BarberRoute";
 import TeamLogin from "./pages/TeamLogin";
 import AdminLayout from "./pages/Admin/AdminLayout";
 import AdminDashboard from "./pages/Admin/AdminDashboard";
+import AdminCalendar from "./pages/Admin/AdminCalendar";
+import AdminFinance from "./pages/Admin/AdminFinance";
+import AdminNotifications from "./pages/Admin/AdminNotifications";
+import AdminSettings from "./pages/Admin/AdminSettings";
+import AdminTeam from "./pages/Admin/AdminTeam";
+import AdminPOS from "./pages/Admin/AdminPOS";
+import { CustomersPage, InventoryPage } from "./pages/Admin/AdminDirectory";
 import AdminOperations from "./pages/Admin/AdminOperations";
 import StaffDashboard from "./pages/StaffDashboard";
 import BarberPage from "./pages/BarberPage";
@@ -116,10 +123,17 @@ const router = createBrowserRouter([
         children: [
           { index: true, element: <AdminDashboard /> },
           { path: "dashboard", element: <AdminDashboard /> },
+          { path: "calendar", element: <AdminCalendar /> },
+          { path: "pos", element: <AdminPOS /> },
+          { path: "customers", element: <CustomersPage /> },
+          { path: "inventory", element: <InventoryPage /> },
+          { path: "transactions", element: <AdminFinance key="transactions" mode="transactions" /> },
+          { path: "expenses", element: <AdminFinance key="expenses" mode="expenses" /> },
+          { path: "notifications", element: <AdminNotifications /> },
           { path: "appointments", element: <AdminOperations mode="appointments" /> },
-          { path: "team", element: <AdminOperations mode="team" /> },
+          { path: "team", element: <AdminTeam /> },
           { path: "services", element: <AdminOperations mode="services" /> },
-          { path: "settings", element: <AdminOperations mode="settings" /> },
+          { path: "settings", element: <AdminSettings /> },
           { path: "reports", element: <Reports /> },
           { path: "audit-logs", element: <AuditLogs /> },
         ],
